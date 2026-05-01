@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem \"C:\\\\Mendix\\\\EXT_Development-main\\\\Extensions\\\\FavoriteDocs\" -Recurse | Where-Object { !$_.PSIsContainer } | Select-Object FullName | Format-List)",
+      "mcp__mxext__search_docs_code",
+      "mcp__mxext__fetch_generic_url_content",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
+    ]
+  }
+}
