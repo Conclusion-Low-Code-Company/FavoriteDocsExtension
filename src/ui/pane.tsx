@@ -120,15 +120,167 @@ function applyMessage(prev: PaneState, msg: MainToPaneMessage): PaneState {
     }
 }
 
-// ── Placeholder sub-components (replaced in Tasks 7 and 8) ───────────────────
+// ── Favorites table ───────────────────────────────────────────────────────────
 
-function FavoritesTable(_props: {
+function sortFavorites(favorites: FavoriteEntry[], prefs: Preferences): FavoriteEntry[] {
+    return [...favorites].sort((a, b) => {
+        const aVal = a[prefs.sortColumn].toLowerCase();
+        const bVal = b[prefs.sortColumn].toLowerCase();
+        const cmp = aVal.localeCompare(bVal);
+        return prefs.sortDirection === "asc" ? cmp : -cmp;
+    });
+}
+
+function FavoritesTable({
+    favorites,
+    activeDocumentId,
+    preferences,
+    sendToMain,
+}: {
     favorites: FavoriteEntry[];
     activeDocumentId: string | null;
     preferences: Preferences;
     sendToMain: (msg: PaneToMainMessage) => Promise<void>;
 }) {
-    return <p style={{ color: "#999" }}>Table coming in Task 7…</p>;
+    const isActiveAlreadyFavorited = favorites.some(f => f.documentId === activeDocumentId);
+    const sorted = sortFavorites(favorites, preferences);
+
+    function toggleSort(column: typeof preferences.sortColumn) {
+        const direction =
+            preferences.sortColumn === column && preferences.sortDirection === "asc"
+                ? "desc"
+                : "asc";
+        sendToMain({ type: "savePreferences", sortColumn: column, sortDirection: direction });
+    }
+
+    function SortIndicator({ col }: { col: typeof preferences.sortColumn }) {
+        if (preferences.sortColumn !== col) return null;
+        return <span>{preferences.sortDirection === "asc" ? " ▲" : " ▼"}</span>;
+    }
+
+    if (favorites.length === 0) {
+        return (
+            <div>
+                <AddButton disabled={!activeDocumentId} sendToMain={sendToMain} />
+                <p style={{ color: "#888", marginTop: "16px" }}>
+                    No favorites yet. Open a document and click + Add current document.
+                </p>
+            </div>
+        );
+    }
+
+    return (
+        <div>
+            <AddButton
+                disabled={!activeDocumentId || isActiveAlreadyFavorited}
+                sendToMain={sendToMain}
+            />
+            <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "8px" }}>
+                <thead>
+                    <tr>
+                        <th
+                            onClick={() => toggleSort("moduleName")}
+                            style={{ textAlign: "left", cursor: "pointer", padding: "4px 8px", userSelect: "none" }}
+                        >
+                            Module<SortIndicator col="moduleName" />
+                        </th>
+                        <th
+                            onClick={() => toggleSort("documentName")}
+                            style={{ textAlign: "left", cursor: "pointer", padding: "4px 8px", userSelect: "none" }}
+                        >
+                            Name<SortIndicator col="documentName" />
+                        </th>
+                        <th
+                            onClick={() => toggleSort("documentType")}
+                            style={{ textAlign: "left", cursor: "pointer", padding: "4px 8px", userSelect: "none" }}
+                        >
+                            Type<SortIndicator col="documentType" />
+                        </th>
+                        <th style={{ width: "24px" }} />
+                        <th style={{ width: "24px" }} />
+                    </tr>
+                </thead>
+                <tbody>
+                    {sorted.map(entry => (
+                        <FavoriteRow
+                            key={entry.documentId}
+                            entry={entry}
+                            isActive={entry.documentId === activeDocumentId}
+                            sendToMain={sendToMain}
+                        />
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    );
+}
+
+function AddButton({
+    disabled,
+    sendToMain,
+}: {
+    disabled: boolean;
+    sendToMain: (msg: PaneToMainMessage) => Promise<void>;
+}) {
+    return (
+        <button
+            disabled={disabled}
+            onClick={() => sendToMain({ type: "addFavorite" })}
+            style={{ cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.5 : 1 }}
+        >
+            + Add current document
+        </button>
+    );
+}
+
+function FavoriteRow({
+    entry,
+    isActive,
+    sendToMain,
+}: {
+    entry: FavoriteEntry;
+    isActive: boolean;
+    sendToMain: (msg: PaneToMainMessage) => Promise<void>;
+}) {
+    const [hovered, setHovered] = useState(false);
+    const activeStyle: React.CSSProperties = isActive
+        ? { fontWeight: "bold", backgroundColor: "#f0f4ff" }
+        : {};
+
+    return (
+        <tr
+            style={{ ...activeStyle, cursor: "pointer" }}
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
+            onDoubleClick={() => sendToMain({ type: "openDocument", documentId: entry.documentId })}
+        >
+            <td style={{ padding: "3px 8px" }}>{entry.moduleName}</td>
+            <td style={{ padding: "3px 8px" }}>{entry.documentName}</td>
+            <td style={{ padding: "3px 8px", color: "#666" }}>{entry.documentType}</td>
+            <td style={{ padding: "3px 4px", width: "24px" }}>
+                {hovered && (
+                    <button
+                        title="Open"
+                        onClick={() => sendToMain({ type: "openDocument", documentId: entry.documentId })}
+                        style={{ border: "none", background: "none", cursor: "pointer", padding: 0 }}
+                    >
+                        ↗
+                    </button>
+                )}
+            </td>
+            <td style={{ padding: "3px 4px", width: "24px" }}>
+                {hovered && (
+                    <button
+                        title="Remove"
+                        onClick={() => sendToMain({ type: "removeFavorite", documentId: entry.documentId })}
+                        style={{ border: "none", background: "none", cursor: "pointer", padding: 0, color: "#c00" }}
+                    >
+                        ×
+                    </button>
+                )}
+            </td>
+        </tr>
+    );
 }
 
 function IdentityForm({ onSubmit }: { onSubmit: (value: string) => void }) {
