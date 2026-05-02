@@ -104,7 +104,7 @@ function FavoritesPane({
 function applyMessage(prev: PaneState, msg: MainToPaneMessage): PaneState {
     switch (msg.type) {
         case "favoritesChanged":
-            return { ...prev, favorites: msg.favorites };
+            return { ...prev, favorites: msg.favorites, needsIdentity: false };
         case "activeDocumentChanged":
             return { ...prev, activeDocumentId: msg.documentId };
         case "preferencesChanged":
