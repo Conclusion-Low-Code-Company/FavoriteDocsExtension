@@ -201,3 +201,9 @@ favorites/            # Created at runtime, committed to git
 - "Open all favorites" — open every favorited document as an editor tab simultaneously. Needs UX consideration for large lists.
 - Auto-refresh document names when a document is renamed in the model.
 - Right-click context menu in App Explorer — not yet available in the SP11 web extension API.
+- **Remove all favorites button** — a single "Clear all" action in the pane (with a confirmation step to avoid accidental data loss).
+- **Row action buttons always visible** — show ↗ and × inline at all times instead of on hover only; reduces discoverability friction, especially for keyboard/touch users.
+- **Dark / light mode styling** — detect and respond to the OS or Studio Pro theme preference so the pane feels consistent in both modes.
+- **Native Mendix Studio Pro styling** — adopt Studio Pro's UI design language (fonts, colors, spacing, control shapes) so the pane looks built-in rather than like an embedded web page.
+- **Remove Module column** — drop the Module column from the table to save horizontal space; module context can be inferred from the document name or shown on hover.
+- **Document type as icons** — replace the Type text column with a small icon per document type (Page, Microflow, etc.) to reduce column width and improve scannability.
