@@ -14,7 +14,20 @@
       "Bash(Get-Content \"c:\\\\Mendix\\\\EXT_Development-main\\\\Extensions\\\\FavoriteDocs\\\\.claude\\\\settings.json\")",
       "Read(//c/Mendix/EXT_Development-main/**)",
       "Bash(ls -d .worktrees)",
-      "Bash(ls -d worktrees)"
+      "Bash(ls -d worktrees)",
+      "Bash(git check-ignore *)",
+      "Bash(git commit *)",
+      "Bash(git worktree *)",
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(npx tsc *)",
+      "Bash(Remove-Item src\\\\ui\\\\index.tsx)",
+      "Bash(git rm *)",
+      "Bash(git checkout *)",
+      "Bash(git pull *)",
+      "Bash(git merge *)",
+      "Bash(./node_modules/.bin/tsc --noEmit)",
+      "Bash(git branch *)"
     ],
     "additionalDirectories": [
       "c:\\Users\\bartheijs\\.claude\\projects\\c--Mendix-EXT-Development-main-Extensions-FavoriteDocs\\memory"

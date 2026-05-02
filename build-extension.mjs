@@ -3,7 +3,7 @@ import {copyToAppPlugin, copyManifestPlugin, commonConfig} from "./build.helpers
 import parseArgs from "minimist"
 
 const outDir = `dist/FavoriteDocs`
-const appDir = "C:\\Mendix\\EXT_Development-main"
+const appDir = "C:\\Mendix\\ExtTest"
 const extensionDirectoryName = "extensions"
 
 const entryPoints = [
