@@ -1,4 +1,25 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"c:\\\\Mendix\\\\EXT_Development-main\\\\Extensions\\\\FavoriteDocs\\\\src\" -Recurse -File)",
+      "Bash(Select-Object FullName)",
+      "PowerShell(Write-Host \"=== ROOT DIRECTORY ===\" ; Get-ChildItem -Path \"c:\\\\Mendix\\\\EXT_Development-main\\\\Extensions\\\\FavoriteDocs\" | Select-Object Name, @{Name=\"Type\"; Expression={if\\($_.PSIsContainer\\) {\"Directory\"} else {\"File\"}}} | Format-Table -AutoSize)",
+      "PowerShell(Write-Host \"=== SRC DIRECTORY STRUCTURE ===\" ; Get-ChildItem -Path \"c:\\\\Mendix\\\\EXT_Development-main\\\\Extensions\\\\FavoriteDocs\\\\src\" -Recurse | Select-Object @{Name=\"Path\"; Expression={$_.FullName.Replace\\('c:\\\\Mendix\\\\EXT_Development-main\\\\Extensions\\\\FavoriteDocs\\\\', ''\\)}} | ForEach-Object { $_.Path } | Sort-Object)",
+      "Read(//c/Users/bartheijs/.claude/projects/c--Mendix-EXT-Development-main-Extensions-FavoriteDocs/memory/**)",
+      "Skill(update-config)",
+      "Skill(update-config:*)",
+      "Bash(Get-Content \"c:\\\\Mendix\\\\EXT_Development-main\\\\Extensions\\\\FavoriteDocs\\\\.mcp.json\")",
+      "Bash(ConvertFrom-Json)",
+      "Bash(ConvertTo-Json -Depth 10)",
+      "Bash(Get-Content \"c:\\\\Mendix\\\\EXT_Development-main\\\\Extensions\\\\FavoriteDocs\\\\.claude\\\\settings.json\")",
+      "Read(//c/Mendix/EXT_Development-main/**)",
+      "Bash(ls -d .worktrees)",
+      "Bash(ls -d worktrees)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\bartheijs\\.claude\\projects\\c--Mendix-EXT-Development-main-Extensions-FavoriteDocs\\memory"
+    ]
+  },
   "enabledPlugins": {
     "superpowers@claude-plugins-official": true
   }
