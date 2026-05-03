@@ -246,6 +246,11 @@ function sortFavorites(favorites: FavoriteEntry[], prefs: Preferences): Favorite
     });
 }
 
+function SortIndicator({ col, preferences }: { col: SortColumn; preferences: Preferences }) {
+    if (preferences.sortColumn !== col) return null;
+    return <span>{preferences.sortDirection === "asc" ? " ▲" : " ▼"}</span>;
+}
+
 function FavoritesTable({
     favorites,
     activeDocumentId,
@@ -277,11 +282,6 @@ function FavoritesTable({
         sendToMain({ type: "savePreferences", sortColumn: column, sortDirection: direction });
     }
 
-    function SortIndicator({ col }: { col: SortColumn }) {
-        if (preferences.sortColumn !== col) return null;
-        return <span>{preferences.sortDirection === "asc" ? " ▲" : " ▼"}</span>;
-    }
-
     if (favorites.length === 0) {
         return (
             <div>
@@ -304,6 +304,7 @@ function FavoritesTable({
                 <colgroup>
                     <col style={{ width: "28px" }} />
                     <col />
+                    <col style={{ width: "60px" }} />
                 </colgroup>
                 <thead>
                     <tr style={{ borderBottom: "1px solid var(--color-border)", color: "var(--color-text-muted)" }}>
@@ -312,13 +313,13 @@ function FavoritesTable({
                             onClick={() => toggleSort("documentName")}
                             style={{ textAlign: "left", cursor: "pointer", padding: "4px 8px", userSelect: "none", fontWeight: "normal" }}
                         >
-                            Name<SortIndicator col="documentName" />
+                            Name<SortIndicator col="documentName" preferences={preferences} />
                         </th>
                         <th
                             onClick={() => toggleSort("documentType")}
                             style={{ textAlign: "left", cursor: "pointer", padding: "4px 8px", userSelect: "none", fontWeight: "normal", width: "60px" }}
                         >
-                            Type<SortIndicator col="documentType" />
+                            Type<SortIndicator col="documentType" preferences={preferences} />
                         </th>
                     </tr>
                 </thead>
@@ -417,6 +418,7 @@ function FavoriteRow({
             }}>
                 {entry.documentName}
             </td>
+            <td style={{ width: "60px" }} />
         </tr>
     );
 }
