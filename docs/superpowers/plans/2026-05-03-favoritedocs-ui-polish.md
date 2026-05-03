@@ -330,43 +330,72 @@ git commit -m "feat: inject CSS custom property tokens driven by Studio Pro them
 **Files:**
 - Modify: `src/ui/pane.tsx`
 
-- [ ] **Step 1: Add icon constants and `getDocumentTypeIcon` helper**
+- [ ] **Step 1: Add icon helper, icon constants, and `getDocumentTypeIcon`**
 
-Add after `THEME_TOKENS`, before the `component` export:
+Add after `THEME_TOKENS`, before the `component` export. Icons use outline/stroke style to match Studio Pro's App Explorer icon aesthetic. The generic icon is the "arrow-from-box" (open-in-new) icon shown in Studio Pro. Paths should be visually verified against Studio Pro in DevTools and fine-tuned if needed.
 
-```ts
+```tsx
 // ── Document type icons ───────────────────────────────────────────────────────
 
-const ICON_STYLE: React.CSSProperties = { display: "block", flexShrink: 0 };
+function TypeIcon({ children }: { children: React.ReactNode }): React.ReactElement {
+    return (
+        <svg
+            width="14" height="14" viewBox="0 0 14 14"
+            fill="none" stroke="currentColor" strokeWidth="1.5"
+            strokeLinecap="round" strokeLinejoin="round"
+            style={{ display: "block", flexShrink: 0 }}
+        >
+            {children}
+        </svg>
+    );
+}
+
+// Page: document outline with folded top-right corner
+const PAGE_ICON = (
+    <TypeIcon>
+        <path d="M2 1h6l4 4v8H2z"/>
+        <polyline points="8,1 8,5 12,5"/>
+    </TypeIcon>
+);
+
+// Microflow: circle with play triangle inside
+const MICROFLOW_ICON = (
+    <TypeIcon>
+        <circle cx="7" cy="7" r="5.5"/>
+        <path d="M5.5 4.5l5 2.5-5 2.5z"/>
+    </TypeIcon>
+);
+
+// Nanoflow: lightning bolt (outline)
+const NANOFLOW_ICON = (
+    <TypeIcon>
+        <path d="M9 1L4 8h4l-3 5 8-8H9z"/>
+    </TypeIcon>
+);
+
+// Snippet: two overlapping rectangles (reusable piece)
+const SNIPPET_ICON = (
+    <TypeIcon>
+        <rect x="1" y="4" width="8" height="7"/>
+        <path d="M5 1h8v7h-2"/>
+    </TypeIcon>
+);
+
+// Generic: arrow-from-box (open-in-new) — matches Studio Pro's document icon style
+const GENERIC_ICON = (
+    <TypeIcon>
+        <polyline points="8,1 13,1 13,6"/>
+        <line x1="13" y1="1" x2="6" y2="8"/>
+        <path d="M6 4H2v8h8V8"/>
+    </TypeIcon>
+);
 
 const DOCUMENT_TYPE_ICONS: Partial<Record<string, React.ReactElement>> = {
-    Page: (
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor" style={ICON_STYLE}>
-            <path d="M2 1h6l4 4v8H2V1zm6 0v4h4"/>
-        </svg>
-    ),
-    Microflow: (
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor" style={ICON_STYLE}>
-            <path d="M3 2l9 5-9 5V2z"/>
-        </svg>
-    ),
-    Nanoflow: (
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor" style={ICON_STYLE}>
-            <path d="M8 1L3 8h4l-2 5 6-7H8z"/>
-        </svg>
-    ),
-    Snippet: (
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor" style={ICON_STYLE}>
-            <path d="M4 1h8v7h-2V3H4V1zM1 4h8v7H1V4z"/>
-        </svg>
-    ),
+    Page: PAGE_ICON,
+    Microflow: MICROFLOW_ICON,
+    Nanoflow: NANOFLOW_ICON,
+    Snippet: SNIPPET_ICON,
 };
-
-const GENERIC_ICON = (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor" style={ICON_STYLE}>
-        <path d="M2 1h10v12H2z"/>
-    </svg>
-);
 
 function getDocumentTypeIcon(type: string): React.ReactElement {
     return DOCUMENT_TYPE_ICONS[type] ?? GENERIC_ICON;
