@@ -100,8 +100,8 @@ const GENERIC_ICON = (
 const DOCUMENT_TYPE_ICONS: Partial<Record<string, React.ReactElement>> = {
     "Pages$Page": PAGE_ICON,
     "Microflows$Microflow": MICROFLOW_ICON,
-    "Nanoflows$Nanoflow": NANOFLOW_ICON,
-    "Snippets$Snippet": SNIPPET_ICON,
+    "Microflows$Nanoflow": NANOFLOW_ICON,
+    "Pages$Snippet": SNIPPET_ICON,
 };
 
 function getDocumentTypeIcon(type: string): React.ReactElement {
