@@ -344,8 +344,91 @@ function FavoritesTable({
                     ))}
                 </tbody>
             </table>
-            {/* ContextMenu is rendered here in Task 7 */}
+            {contextMenu && (
+                <ContextMenu
+                    x={contextMenu.x}
+                    y={contextMenu.y}
+                    documentId={contextMenu.documentId}
+                    onClose={() => setContextMenu(null)}
+                    sendToMain={sendToMain}
+                />
+            )}
         </div>
+    );
+}
+
+function ContextMenuItem({ label, onClick }: { label: string; onClick: () => void }) {
+    const [hovered, setHovered] = useState(false);
+    return (
+        <div
+            style={{
+                padding: "6px 12px",
+                cursor: "pointer",
+                background: hovered ? "var(--color-menu-hover)" : "transparent",
+                color: "var(--color-text)",
+            }}
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
+            onClick={onClick}
+        >
+            {label}
+        </div>
+    );
+}
+
+function ContextMenu({
+    x,
+    y,
+    documentId,
+    onClose,
+    sendToMain,
+}: {
+    x: number;
+    y: number;
+    documentId: string;
+    onClose: () => void;
+    sendToMain: (msg: PaneToMainMessage) => Promise<void>;
+}) {
+    useEffect(() => {
+        function handleKeyDown(e: KeyboardEvent) {
+            if (e.key === "Escape") onClose();
+        }
+        document.addEventListener("keydown", handleKeyDown);
+        return () => document.removeEventListener("keydown", handleKeyDown);
+    }, [onClose]);
+
+    return (
+        <>
+            {/* Click-outside overlay */}
+            <div style={{ position: "fixed", inset: 0, zIndex: 999 }} onClick={onClose} />
+            <div style={{
+                position: "fixed",
+                left: x,
+                top: y,
+                background: "var(--color-menu-bg)",
+                border: "1px solid var(--color-border)",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.25)",
+                zIndex: 1000,
+                fontFamily: "var(--font-family)",
+                fontSize: "var(--font-size)",
+                minWidth: "172px",
+            }}>
+                <ContextMenuItem
+                    label="Open favorite"
+                    onClick={() => {
+                        sendToMain({ type: "openDocument", documentId });
+                        onClose();
+                    }}
+                />
+                <ContextMenuItem
+                    label="Remove as favorite"
+                    onClick={() => {
+                        sendToMain({ type: "removeFavorite", documentId });
+                        onClose();
+                    }}
+                />
+            </div>
+        </>
     );
 }
 
