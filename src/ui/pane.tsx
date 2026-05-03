@@ -110,7 +110,7 @@ function applyMessage(prev: PaneState, msg: MainToPaneMessage): PaneState {
         case "preferencesChanged":
             return { ...prev, preferences: { sortColumn: msg.sortColumn, sortDirection: msg.sortDirection } };
         case "studioThemeChanged":
-            return prev; // Theme change handled by main; pane re-renders on state updates
+            return prev; // placeholder — Task 4 updates this to return { ...prev, theme: msg.theme }
         case "needsIdentity":
             return { ...prev, needsIdentity: true };
         case "documentNotFound":
