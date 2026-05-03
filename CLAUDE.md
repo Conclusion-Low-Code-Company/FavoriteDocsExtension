@@ -74,6 +74,9 @@ The sandboxed webview environment is more constrained than the TypeScript types 
 - Any API that works in the type definitions may still throw at runtime if that feature is not available in the running Studio Pro version. Always guard with try/catch.
 - `studioPro.ui.preferences.getPreferences()` is the correct path for the preferences API (not `studioPro.app.preferences`).
 
+### IAppFilesApi requires the directory to exist before putFile
+`files.putFile("favorites/identity.json", ...)` silently fails if the `favorites/` directory does not exist yet. The directory is only created implicitly when the first file is written into it. Always ensure a directory-creating write (e.g. writing the main data file) happens before writing any secondary files into the same directory.
+
 ### IAppFilesApi only reliably reads .json files
 `files.getFile()` silently fails for files without a `.json` extension — the file exists on disk but the API throws when reading it. Always use `.json` filenames. Also cannot read dotfiles (names starting with `.`).
 
