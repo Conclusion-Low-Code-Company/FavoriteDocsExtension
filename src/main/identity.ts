@@ -40,13 +40,21 @@ export async function resolveIdentityHash(
         null;
     if (osUser) return sha256hex(osUser);
 
-    // 4. Stored identity file (written when user answers the prompt).
-    //    Must use a .json extension — IAppFilesApi only reads .json files reliably.
+    // 4. Auto-discover from the favorites directory listing.
+    //    getFiles() is more reliable than getFile() for this use case.
+    //    If exactly one favorites file exists its filename IS the hash — no separate
+    //    identity file read needed.
     try {
-        const stored = JSON.parse(await files.getFile("favorites/identity.json")) as string;
-        if (stored) return stored;
+        const all = await files.getFiles("favorites/*.json");
+        const favFiles = all.filter(p => {
+            const name = p.split("/").pop()!.replace(".json", "");
+            return /^[0-9a-f]{64}$/.test(name);
+        });
+        if (favFiles.length === 1) {
+            return favFiles[0].split("/").pop()!.replace(".json", "");
+        }
     } catch {
-        // file does not exist yet
+        // API unavailable or no files
     }
 
     // 5. Requires user prompt — caller must send needsIdentity to pane
