@@ -41,10 +41,9 @@ export async function resolveIdentityHash(
     if (osUser) return sha256hex(osUser);
 
     // 4. Stored identity file (written when user answers the prompt).
-    //    Note: IAppFilesApi cannot read dotfiles, so this must stay as "identity"
-    //    (not ".identity").
+    //    Must use a .json extension — IAppFilesApi only reads .json files reliably.
     try {
-        const stored = (await files.getFile("favorites/identity")).trim();
+        const stored = JSON.parse(await files.getFile("favorites/identity.json")) as string;
         if (stored) return stored;
     } catch {
         // file does not exist yet
@@ -56,5 +55,5 @@ export async function resolveIdentityHash(
 
 // Persists a hash to identity file after the user supplies their name via the pane.
 export async function saveIdentityHash(files: IAppFilesApi, hash: string): Promise<void> {
-    await files.putFile("favorites/identity", hash);
+    await files.putFile("favorites/identity.json", JSON.stringify(hash));
 }
