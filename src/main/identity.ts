@@ -41,21 +41,13 @@ export async function resolveIdentityHash(
     if (osUser) return sha256hex(osUser);
 
     // 4. Stored identity file (written when user answers the prompt).
-    //    Try the current filename first, then fall back to the legacy dotfile name
-    //    (.identity) which the IAppFilesApi cannot read on some Studio Pro versions.
-    for (const path of ["favorites/identity", "favorites/.identity"]) {
-        try {
-            const stored = (await files.getFile(path)).trim();
-            if (stored) {
-                // Migrate legacy dotfile to the new name on first successful read
-                if (path === "favorites/.identity") {
-                    await files.putFile("favorites/identity", stored);
-                }
-                return stored;
-            }
-        } catch {
-            // file does not exist — try next
-        }
+    //    Note: IAppFilesApi cannot read dotfiles, so this must stay as "identity"
+    //    (not ".identity").
+    try {
+        const stored = (await files.getFile("favorites/identity")).trim();
+        if (stored) return stored;
+    } catch {
+        // file does not exist yet
     }
 
     // 5. Requires user prompt — caller must send needsIdentity to pane
