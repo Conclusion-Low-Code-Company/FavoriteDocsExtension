@@ -1,7 +1,7 @@
 import { ComponentContext, IComponent, getStudioProApi, ActiveDocumentInfo } from "@mendix/extensions-api";
 import type { FavoriteEntry, FavoritesFile, MainToPaneMessage, PaneToMainMessage, Preferences } from "../types.js";
 import { DEFAULT_PREFERENCES } from "../types.js";
-import { resolveIdentityHash, saveIdentityHash, sha256hex } from "./identity.js";
+import { resolveIdentityKey, sanitizeName } from "./identity.js";
 import { loadFavorites, saveFavorites } from "./storage.js";
 
 interface State {
@@ -9,7 +9,7 @@ interface State {
     preferences: Preferences;
     activeDocumentId: string | null;
     activeDocumentInfo: ActiveDocumentInfo | null;
-    identityHash: string | null;
+    identityKey: string | null;
     theme: "Light" | "Dark";
 }
 
@@ -23,7 +23,7 @@ export const component: IComponent = {
             preferences: { ...DEFAULT_PREFERENCES },
             activeDocumentId: null,
             activeDocumentInfo: null,
-            identityHash: null,
+            identityKey: null,
             theme: "Dark",
         };
 
@@ -42,22 +42,20 @@ export const component: IComponent = {
             await broadcast({ type: "activeDocumentChanged", documentId: state.activeDocumentId });
             await broadcast({ type: "preferencesChanged", ...state.preferences });
             await broadcast({ type: "studioThemeChanged", theme: state.theme });
-            if (!state.identityHash) {
+            if (!state.identityKey) {
                 await broadcast({ type: "needsIdentity" });
             }
         }
 
         async function persistAndBroadcastFavorites(): Promise<void> {
-            if (!state.identityHash) return;
+            if (!state.identityKey) return;
             const file: FavoritesFile = {
                 version: 1,
                 preferences: state.preferences,
                 favorites: state.favorites,
             };
             try {
-                await saveFavorites(files, state.identityHash, file);
-                // Write identity after saveFavorites so the directory is guaranteed to exist
-                await saveIdentityHash(files, state.identityHash);
+                await saveFavorites(files, state.identityKey, file);
             } catch {
                 await broadcast({ type: "notification", message: "Favorites could not be saved. Changes may be lost." });
             }
@@ -92,10 +90,10 @@ export const component: IComponent = {
             ],
         });
 
-        const hash = await resolveIdentityHash(files, studioPro);
-        if (hash) {
-            state.identityHash = hash;
-            const file = await loadFavorites(files, hash);
+        const key = await resolveIdentityKey(files);
+        if (key) {
+            state.identityKey = key;
+            const file = await loadFavorites(files, key);
             state.favorites = file.favorites;
             state.preferences = file.preferences;
         }
@@ -119,10 +117,9 @@ export const component: IComponent = {
                     }
 
                     case "setIdentity": {
-                        const newHash = await sha256hex(message.value);
-                        state.identityHash = newHash;
-                        await saveIdentityHash(files, newHash);
-                        const file = await loadFavorites(files, newHash);
+                        const newKey = sanitizeName(message.value);
+                        state.identityKey = newKey;
+                        const file = await loadFavorites(files, newKey);
                         state.favorites = file.favorites;
                         state.preferences = file.preferences;
                         await broadcastAll();
@@ -130,7 +127,7 @@ export const component: IComponent = {
                     }
 
                     case "addFavorite": {
-                        if (!state.activeDocumentInfo || !state.identityHash) break;
+                        if (!state.activeDocumentInfo || !state.identityKey) break;
                         if (state.favorites.some(f => f.documentId === state.activeDocumentId)) break;
                         const info = state.activeDocumentInfo;
                         const entry: FavoriteEntry = {
@@ -145,7 +142,7 @@ export const component: IComponent = {
                     }
 
                     case "removeFavorite": {
-                        if (!state.identityHash) break;
+                        if (!state.identityKey) break;
                         state.favorites = state.favorites.filter(f => f.documentId !== message.documentId);
                         await persistAndBroadcastFavorites();
                         break;
@@ -169,7 +166,7 @@ export const component: IComponent = {
                     }
 
                     case "savePreferences": {
-                        if (!state.identityHash) break;
+                        if (!state.identityKey) break;
                         state.preferences = {
                             sortColumn: message.sortColumn,
                             sortDirection: message.sortDirection,
@@ -180,7 +177,7 @@ export const component: IComponent = {
                             favorites: state.favorites,
                         };
                         try {
-                            await saveFavorites(files, state.identityHash, file);
+                            await saveFavorites(files, state.identityKey, file);
                         } catch {
                             // non-critical — sort pref loss is acceptable
                         }
