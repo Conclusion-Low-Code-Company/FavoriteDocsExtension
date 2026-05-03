@@ -22,12 +22,7 @@ A Mendix Studio Pro web extension that lets developers mark any document as a fa
 - Per-user favorites file stored in the project and committed to git
 - Privacy-preserving hashed filename
 
-**Backlog (not in v1):**
-- "Open all favorites" action
-- Auto-sync on document rename
-- Right-click context menu in App Explorer (not available in the SP11 web extension API)
-- **Rethink identity / filename UX** — the current flow hashes a user-supplied name into an opaque filename. Improvements to consider: (1) keep the name human-readable in the filename so the file is recognisable in git; (2) on first run, show any existing favorites files in the project and let the user pick one (or create new) — this makes it easy to re-use the same file when switching machines; (3) the name is currently just a hash key, but it could double as a display label shown in the pane header ("Bart's favorites").
-- **Default pane position to left** — change `initialPosition` from `"right"` to `"left"` so the pane opens on the same side as the App Explorer by default (one-line change in `main/index.ts`). The API only supports dockable panes (`"left"` | `"right"` | `"bottom"`); a truly pinned/always-visible non-dockable panel is not available in the Extensions API v0.8.0. The user can still drag it above the App Explorer manually, but `"left"` makes that the starting point.
+**Backlog:** see [docs/backlog.md](../backlog.md)
 
 ---
 
@@ -200,12 +195,4 @@ favorites/            # Created at runtime, committed to git
 
 ## Backlog
 
-- "Open all favorites" — open every favorited document as an editor tab simultaneously. Needs UX consideration for large lists.
-- Auto-refresh document names when a document is renamed in the model.
-- Right-click context menu in App Explorer — not yet available in the SP11 web extension API.
-- **Remove all favorites button** — a single "Clear all" action in the pane (with a confirmation step to avoid accidental data loss).
-- **Row action buttons always visible** — show ↗ and × inline at all times instead of on hover only; reduces discoverability friction, especially for keyboard/touch users.
-- **Dark / light mode styling** — detect and respond to the OS or Studio Pro theme preference so the pane feels consistent in both modes.
-- **Native Mendix Studio Pro styling** — adopt Studio Pro's UI design language (fonts, colors, spacing, control shapes) so the pane looks built-in rather than like an embedded web page.
-- **Remove Module column** — drop the Module column from the table to save horizontal space; module context can be inferred from the document name or shown on hover.
-- **Document type as icons** — replace the Type text column with a small icon per document type (Page, Microflow, etc.) to reduce column width and improve scannability.
+See [docs/backlog.md](../backlog.md).
