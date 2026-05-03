@@ -27,7 +27,22 @@
       "Bash(git pull *)",
       "Bash(git merge *)",
       "Bash(./node_modules/.bin/tsc --noEmit)",
-      "Bash(git branch *)"
+      "Bash(git branch *)",
+      "Bash(Get-ChildItem -Recurse -Force)",
+      "Bash(Select-Object -Property FullName)",
+      "Bash(ConvertTo-Csv -NoTypeInformation)",
+      "Bash(Select-Object -Skip 1)",
+      "Bash(Sort-Object)",
+      "Bash(cmd /c \"mklink /J node_modules ..\\\\..\\\\node_modules\")",
+      "Read(//c/Users/bartheijs/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.7/skills/subagent-driven-development/**)",
+      "Bash(echo \"TSC exit: $?\")",
+      "Bash(node build-extension.mjs)",
+      "Bash(Get-ChildItem node_modules/@mendix/extensions-api -Recurse -Filter \"*.d.ts\")",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(git -C C:\\\\git\\\\FavoriteDocs\\\\.worktrees\\\\ui-polish diff b6bedba..7c61c11 -- src/ui/pane.tsx)",
+      "Bash(git show *)",
+      "PowerShell(Get-ChildItem \"c:\\\\git\\\\FavoriteDocs\" -MaxDepth 1 -File | Where-Object { $_.Extension -in '.js', '.map' } | Select-Object Name)",
+      "PowerShell(Get-ChildItem \"c:\\\\git\\\\FavoriteDocs\" | Where-Object { !$_.PSIsContainer -and $_.Extension -in '.js', '.map' } | Select-Object Name)"
     ],
     "additionalDirectories": [
       "c:\\Users\\bartheijs\\.claude\\projects\\c--Mendix-EXT-Development-main-Extensions-FavoriteDocs\\memory"
