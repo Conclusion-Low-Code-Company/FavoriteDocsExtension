@@ -15,6 +15,10 @@ export async function loadFavorites(files: IAppFilesApi, hash: string): Promise<
         const raw = await files.getFile(`favorites/${hash}.json`);
         const parsed = JSON.parse(raw) as FavoritesFile;
         if (parsed.version !== 1) return emptyFile();
+        // Migrate legacy sort column removed in release 1
+        if ((parsed.preferences.sortColumn as string) === "moduleName") {
+            parsed.preferences.sortColumn = "documentName";
+        }
         return parsed;
     } catch {
         return emptyFile();
