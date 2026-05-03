@@ -4,10 +4,46 @@ import { ComponentContext, IComponent, getStudioProApi } from "@mendix/extension
 import type { FavoriteEntry, MainToPaneMessage, Preferences, PaneToMainMessage } from "../types.js";
 import { DEFAULT_PREFERENCES } from "../types.js";
 
+// ── Design tokens ─────────────────────────────────────────────────────────────
+
+const THEME_TOKENS: Record<"Light" | "Dark", Record<string, string>> = {
+    Dark: {
+        "--color-bg":           "#1e1e1e",
+        "--color-row-hover":    "#2a2d2e",
+        "--color-row-active":   "rgba(74,171,243,0.12)",
+        "--color-focus-border": "#4babf3",
+        "--color-text":         "#cccccc",
+        "--color-text-muted":   "#888888",
+        "--color-border":       "#3c3c3c",
+        "--color-btn-bg":       "#313131",
+        "--color-btn-hover":    "#3d3d3d",
+        "--color-menu-bg":      "#252526",
+        "--color-menu-hover":   "#2a2d2e",
+        "--font-family":        '"Segoe UI", system-ui, sans-serif',
+        "--font-size":          "12px",
+    },
+    Light: {
+        "--color-bg":           "#f3f3f3",
+        "--color-row-hover":    "#e8e8e8",
+        "--color-row-active":   "rgba(74,171,243,0.15)",
+        "--color-focus-border": "#4babf3",
+        "--color-text":         "#1e1e1e",
+        "--color-text-muted":   "#717171",
+        "--color-border":       "#d4d4d4",
+        "--color-btn-bg":       "#e1e1e1",
+        "--color-btn-hover":    "#d5d5d5",
+        "--color-menu-bg":      "#ffffff",
+        "--color-menu-hover":   "#e8e8e8",
+        "--font-family":        '"Segoe UI", system-ui, sans-serif',
+        "--font-size":          "12px",
+    },
+};
+
 interface PaneState {
     favorites: FavoriteEntry[];
     activeDocumentId: string | null;
     preferences: Preferences;
+    theme: "Light" | "Dark";
     needsIdentity: boolean;
     documentNotFound: { documentId: string; documentName: string; moduleName: string } | null;
     notification: string | null;
@@ -57,6 +93,7 @@ function FavoritesPane({
         favorites: [],
         activeDocumentId: null,
         preferences: DEFAULT_PREFERENCES,
+        theme: "Dark",
         needsIdentity: false,
         documentNotFound: null,
         notification: null,
@@ -67,6 +104,13 @@ function FavoritesPane({
             setState((prev) => applyMessage(prev, msg));
         });
     }, [onRegisterDispatch]);
+
+    useEffect(() => {
+        const tokens = THEME_TOKENS[state.theme];
+        for (const [key, value] of Object.entries(tokens)) {
+            document.documentElement.style.setProperty(key, value);
+        }
+    }, [state.theme]);
 
     if (state.needsIdentity) {
         return <IdentityForm onSubmit={(value) => sendToMain({ type: "setIdentity", value })} />;
@@ -110,7 +154,7 @@ function applyMessage(prev: PaneState, msg: MainToPaneMessage): PaneState {
         case "preferencesChanged":
             return { ...prev, preferences: { sortColumn: msg.sortColumn, sortDirection: msg.sortDirection } };
         case "studioThemeChanged":
-            return prev; // placeholder — Task 4 updates this to return { ...prev, theme: msg.theme }
+            return { ...prev, theme: msg.theme };
         case "needsIdentity":
             return { ...prev, needsIdentity: true };
         case "documentNotFound":
