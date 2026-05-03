@@ -10,6 +10,7 @@ interface State {
     activeDocumentId: string | null;
     activeDocumentInfo: ActiveDocumentInfo | null;
     identityHash: string | null;
+    theme: "Light" | "Dark";
 }
 
 export const component: IComponent = {
@@ -23,6 +24,7 @@ export const component: IComponent = {
             activeDocumentId: null,
             activeDocumentInfo: null,
             identityHash: null,
+            theme: "Dark",
         };
 
         // ── Helpers ───────────────────────────────────────────────────────────
@@ -39,6 +41,7 @@ export const component: IComponent = {
             await broadcast({ type: "favoritesChanged", favorites: state.favorites });
             await broadcast({ type: "activeDocumentChanged", documentId: state.activeDocumentId });
             await broadcast({ type: "preferencesChanged", ...state.preferences });
+            await broadcast({ type: "studioThemeChanged", theme: state.theme });
             if (!state.identityHash) {
                 await broadcast({ type: "needsIdentity" });
             }
@@ -60,6 +63,9 @@ export const component: IComponent = {
         }
 
         // ── Startup ───────────────────────────────────────────────────────────
+
+        const spPrefs = await studioPro.ui.preferences.getPreferences();
+        state.theme = spPrefs.theme;
 
         const paneHandle = await studioPro.ui.panes.register(
             { title: "Favorites", initialPosition: "right" },
