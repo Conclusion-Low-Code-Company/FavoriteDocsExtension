@@ -5,7 +5,7 @@ export interface FavoriteEntry {
     documentType: string;
 }
 
-export type SortColumn = "documentName" | "moduleName" | "documentType";
+export type SortColumn = "documentName" | "documentType";
 export type SortDirection = "asc" | "desc";
 
 export interface Preferences {
@@ -20,7 +20,7 @@ export interface FavoritesFile {
 }
 
 export const DEFAULT_PREFERENCES: Preferences = {
-    sortColumn: "moduleName",
+    sortColumn: "documentName",
     sortDirection: "asc",
 };
 
@@ -40,6 +40,7 @@ export type MainToPaneMessage =
     | { type: "favoritesChanged"; favorites: FavoriteEntry[] }
     | { type: "activeDocumentChanged"; documentId: string | null }
     | { type: "preferencesChanged"; sortColumn: SortColumn; sortDirection: SortDirection }
+    | { type: "studioThemeChanged"; theme: "Light" | "Dark" }
     | { type: "needsIdentity" }
     | { type: "documentNotFound"; documentId: string; documentName: string; moduleName: string }
     | { type: "notification"; message: string };
