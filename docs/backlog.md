@@ -27,6 +27,29 @@ Items marked **release 2** are the next planned batch. Everything else is unsche
 
 ---
 
+## Known bugs
+
+### Identity not persisted across Studio Pro restarts
+
+**Symptom:** User is prompted for their name every time Studio Pro restarts. When the same name is re-entered, existing favorites are found correctly — so the data is fine, but the identity lookup fails on startup.
+
+**Root cause — still unresolved:** The extension needs to remember *which* favorites file belongs to the current user between sessions. Several approaches have been tried, all failing for the same underlying reason: `IAppFilesApi` has severe limitations that are not documented:
+
+1. **`getFile()` with dotfiles** (e.g. `favorites/.identity`) — silently throws; the file exists on disk but the API cannot read it.
+2. **`getFile()` with extensionless files** (e.g. `favorites/identity`) — same silent failure.
+3. **`getFile("favorites/identity.json")`** — file is written correctly but `getFile` still fails on read. Suspected cause: `putFile` silently fails if the `favorites/` directory does not exist yet at the time of the call (the directory is only created when the first `*.json` favorites file is written). Even after working around this by writing identity inside `persistAndBroadcastFavorites`, the read still fails — exact reason unknown.
+4. **`getFiles("favorites/*.json")` auto-discovery** — lists files and extracts key from filename. Fails in two ways: (a) unknown path format returned by `getFiles` on Windows may break the filename extraction; (b) breaks as soon as more than one favorites file exists in the directory (e.g. after testing with multiple names), because the single-file auto-select logic no longer applies.
+
+**Current state of the code:** approach 4 (`getFiles` discovery) is in place but unreliable.
+
+**What needs to happen to fix this properly:**
+- Determine the exact string format `getFiles()` returns on Windows (absolute path? relative path? forward or back slashes?) — best done with a temporary debug log in the extension.
+- Determine why `getFile("favorites/identity.json")` fails when the file visibly exists on disk — inspect the actual exception message.
+- Once either of those is understood, a reliable single-user identity mechanism becomes straightforward.
+- Longer term: the release 2 "Rethink identity UX" item (show existing files, let user pick) would make the whole problem moot for multi-user projects.
+
+---
+
 ## Won't do / API limitations
 
 - **Always-visible fixed panel** — a non-dockable panel permanently visible above the App Explorer. Not available in Extensions API v0.8.0 (only `"left"` | `"right"` | `"bottom"` dockable panes exist).
