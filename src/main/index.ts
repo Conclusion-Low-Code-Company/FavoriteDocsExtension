@@ -64,8 +64,12 @@ export const component: IComponent = {
 
         // ── Startup ───────────────────────────────────────────────────────────
 
-        const spPrefs = await studioPro.ui.preferences.getPreferences();
-        state.theme = spPrefs.theme;
+        try {
+            const spPrefs = await studioPro.ui.preferences.getPreferences();
+            state.theme = spPrefs.theme;
+        } catch {
+            // Preferences API unavailable — theme stays "Dark" (the default)
+        }
 
         const paneHandle = await studioPro.ui.panes.register(
             { title: "Favorites", initialPosition: "right" },
