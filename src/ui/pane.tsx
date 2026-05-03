@@ -1,7 +1,7 @@
 import React, { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { ComponentContext, IComponent, getStudioProApi } from "@mendix/extensions-api";
-import type { FavoriteEntry, MainToPaneMessage, Preferences, PaneToMainMessage } from "../types.js";
+import type { FavoriteEntry, MainToPaneMessage, Preferences, PaneToMainMessage, SortColumn } from "../types.js";
 import { DEFAULT_PREFERENCES } from "../types.js";
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
@@ -257,18 +257,27 @@ function FavoritesTable({
     preferences: Preferences;
     sendToMain: (msg: PaneToMainMessage) => Promise<void>;
 }) {
+    const [focusedId, setFocusedId] = useState<string | null>(null);
+    const [contextMenu, setContextMenu] = useState<{ x: number; y: number; documentId: string } | null>(null);
+    const containerRef = React.useRef<HTMLDivElement>(null);
+
     const isActiveAlreadyFavorited = favorites.some(f => f.documentId === activeDocumentId);
     const sorted = sortFavorites(favorites, preferences);
 
-    function toggleSort(column: typeof preferences.sortColumn) {
+    // Clear focus if focused entry was removed externally
+    useEffect(() => {
+        if (focusedId !== null && !favorites.some(f => f.documentId === focusedId)) {
+            setFocusedId(null);
+        }
+    }, [favorites, focusedId]);
+
+    function toggleSort(column: SortColumn) {
         const direction =
-            preferences.sortColumn === column && preferences.sortDirection === "asc"
-                ? "desc"
-                : "asc";
+            preferences.sortColumn === column && preferences.sortDirection === "asc" ? "desc" : "asc";
         sendToMain({ type: "savePreferences", sortColumn: column, sortDirection: direction });
     }
 
-    function SortIndicator({ col }: { col: typeof preferences.sortColumn }) {
+    function SortIndicator({ col }: { col: SortColumn }) {
         if (preferences.sortColumn !== col) return null;
         return <span>{preferences.sortDirection === "asc" ? " ▲" : " ▼"}</span>;
     }
@@ -277,7 +286,7 @@ function FavoritesTable({
         return (
             <div>
                 <AddButton disabled={!activeDocumentId} sendToMain={sendToMain} />
-                <p style={{ color: "#888", marginTop: "16px" }}>
+                <p style={{ color: "var(--color-text-muted)", marginTop: "16px", fontFamily: "var(--font-family)", fontSize: "var(--font-size)" }}>
                     No favorites yet. Open a document and click + Add current document.
                 </p>
             </div>
@@ -285,28 +294,32 @@ function FavoritesTable({
     }
 
     return (
-        <div>
-            <AddButton
-                disabled={!activeDocumentId || isActiveAlreadyFavorited}
-                sendToMain={sendToMain}
-            />
-            <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "8px" }}>
+        <div
+            ref={containerRef}
+            tabIndex={0}
+            style={{ outline: "none" }}
+        >
+            <AddButton disabled={!activeDocumentId || isActiveAlreadyFavorited} sendToMain={sendToMain} />
+            <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "8px", tableLayout: "fixed", fontFamily: "var(--font-family)", fontSize: "var(--font-size)" }}>
+                <colgroup>
+                    <col style={{ width: "28px" }} />
+                    <col />
+                </colgroup>
                 <thead>
-                    <tr>
+                    <tr style={{ borderBottom: "1px solid var(--color-border)", color: "var(--color-text-muted)" }}>
+                        <th style={{ padding: "4px 4px", userSelect: "none", fontWeight: "normal" }} />
                         <th
                             onClick={() => toggleSort("documentName")}
-                            style={{ textAlign: "left", cursor: "pointer", padding: "4px 8px", userSelect: "none" }}
+                            style={{ textAlign: "left", cursor: "pointer", padding: "4px 8px", userSelect: "none", fontWeight: "normal" }}
                         >
                             Name<SortIndicator col="documentName" />
                         </th>
                         <th
                             onClick={() => toggleSort("documentType")}
-                            style={{ textAlign: "left", cursor: "pointer", padding: "4px 8px", userSelect: "none" }}
+                            style={{ textAlign: "left", cursor: "pointer", padding: "4px 8px", userSelect: "none", fontWeight: "normal", width: "60px" }}
                         >
                             Type<SortIndicator col="documentType" />
                         </th>
-                        <th style={{ width: "24px" }} />
-                        <th style={{ width: "24px" }} />
                     </tr>
                 </thead>
                 <tbody>
@@ -315,11 +328,22 @@ function FavoritesTable({
                             key={entry.documentId}
                             entry={entry}
                             isActive={entry.documentId === activeDocumentId}
-                            sendToMain={sendToMain}
+                            isFocused={entry.documentId === focusedId}
+                            onFocus={() => {
+                                setFocusedId(entry.documentId);
+                                containerRef.current?.focus();
+                            }}
+                            onDoubleClick={() => sendToMain({ type: "openDocument", documentId: entry.documentId })}
+                            onContextMenu={(e) => {
+                                e.preventDefault();
+                                setFocusedId(entry.documentId);
+                                setContextMenu({ x: e.clientX, y: e.clientY, documentId: entry.documentId });
+                            }}
                         />
                     ))}
                 </tbody>
             </table>
+            {/* ContextMenu is rendered here in Task 7 */}
         </div>
     );
 }
@@ -345,47 +369,53 @@ function AddButton({
 function FavoriteRow({
     entry,
     isActive,
-    sendToMain,
+    isFocused,
+    onFocus,
+    onDoubleClick,
+    onContextMenu,
 }: {
     entry: FavoriteEntry;
     isActive: boolean;
-    sendToMain: (msg: PaneToMainMessage) => Promise<void>;
+    isFocused: boolean;
+    onFocus: () => void;
+    onDoubleClick: () => void;
+    onContextMenu: (e: React.MouseEvent) => void;
 }) {
     const [hovered, setHovered] = useState(false);
-    const activeStyle: React.CSSProperties = isActive
-        ? { fontWeight: "bold", backgroundColor: "#f0f4ff" }
-        : {};
+
+    const rowStyle: React.CSSProperties = {
+        cursor: "pointer",
+        outline: isFocused ? "1px solid var(--color-focus-border)" : "none",
+        outlineOffset: "-1px",
+        backgroundColor: isActive
+            ? "var(--color-row-active)"
+            : hovered
+            ? "var(--color-row-hover)"
+            : "transparent",
+        color: "var(--color-text)",
+    };
 
     return (
         <tr
-            style={{ ...activeStyle, cursor: "pointer" }}
+            style={rowStyle}
+            title={`${entry.moduleName} › ${entry.documentName}`}
+            onClick={onFocus}
+            onDoubleClick={onDoubleClick}
+            onContextMenu={onContextMenu}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
-            onDoubleClick={() => sendToMain({ type: "openDocument", documentId: entry.documentId })}
         >
-            <td style={{ padding: "3px 8px" }}>{entry.documentName}</td>
-            <td style={{ padding: "3px 8px", color: "#666" }}>{entry.documentType}</td>
-            <td style={{ padding: "3px 4px", width: "24px" }}>
-                {hovered && (
-                    <button
-                        title="Open"
-                        onClick={() => sendToMain({ type: "openDocument", documentId: entry.documentId })}
-                        style={{ border: "none", background: "none", cursor: "pointer", padding: 0 }}
-                    >
-                        ↗
-                    </button>
-                )}
+            <td style={{ padding: "3px 4px", width: "20px", lineHeight: 0 }}>
+                {getDocumentTypeIcon(entry.documentType)}
             </td>
-            <td style={{ padding: "3px 4px", width: "24px" }}>
-                {hovered && (
-                    <button
-                        title="Remove"
-                        onClick={() => sendToMain({ type: "removeFavorite", documentId: entry.documentId })}
-                        style={{ border: "none", background: "none", cursor: "pointer", padding: 0, color: "#c00" }}
-                    >
-                        ×
-                    </button>
-                )}
+            <td style={{
+                padding: "3px 8px",
+                maxWidth: "0",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+            }}>
+                {entry.documentName}
             </td>
         </tr>
     );
