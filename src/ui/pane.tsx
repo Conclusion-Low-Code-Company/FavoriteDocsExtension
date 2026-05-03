@@ -1,4 +1,4 @@
-import React, { StrictMode, useEffect, useState } from "react";
+import React, { StrictMode, useEffect, useState, useCallback } from "react";
 import { createRoot } from "react-dom/client";
 import { ComponentContext, IComponent, getStudioProApi } from "@mendix/extensions-api";
 import type { FavoriteEntry, MainToPaneMessage, Preferences, PaneToMainMessage, SortColumn } from "../types.js";
@@ -237,126 +237,6 @@ function applyMessage(prev: PaneState, msg: MainToPaneMessage): PaneState {
 
 // ── Favorites table ───────────────────────────────────────────────────────────
 
-function sortFavorites(favorites: FavoriteEntry[], prefs: Preferences): FavoriteEntry[] {
-    return [...favorites].sort((a, b) => {
-        const aVal = a[prefs.sortColumn].toLowerCase();
-        const bVal = b[prefs.sortColumn].toLowerCase();
-        const cmp = aVal.localeCompare(bVal);
-        return prefs.sortDirection === "asc" ? cmp : -cmp;
-    });
-}
-
-function SortIndicator({ col, preferences }: { col: SortColumn; preferences: Preferences }) {
-    if (preferences.sortColumn !== col) return null;
-    return <span>{preferences.sortDirection === "asc" ? " ▲" : " ▼"}</span>;
-}
-
-function FavoritesTable({
-    favorites,
-    activeDocumentId,
-    preferences,
-    sendToMain,
-}: {
-    favorites: FavoriteEntry[];
-    activeDocumentId: string | null;
-    preferences: Preferences;
-    sendToMain: (msg: PaneToMainMessage) => Promise<void>;
-}) {
-    const [focusedId, setFocusedId] = useState<string | null>(null);
-    const [contextMenu, setContextMenu] = useState<{ x: number; y: number; documentId: string } | null>(null);
-    const containerRef = React.useRef<HTMLDivElement>(null);
-
-    const isActiveAlreadyFavorited = favorites.some(f => f.documentId === activeDocumentId);
-    const sorted = sortFavorites(favorites, preferences);
-
-    // Clear focus if focused entry was removed externally
-    useEffect(() => {
-        if (focusedId !== null && !favorites.some(f => f.documentId === focusedId)) {
-            setFocusedId(null);
-        }
-    }, [favorites, focusedId]);
-
-    function toggleSort(column: SortColumn) {
-        const direction =
-            preferences.sortColumn === column && preferences.sortDirection === "asc" ? "desc" : "asc";
-        sendToMain({ type: "savePreferences", sortColumn: column, sortDirection: direction });
-    }
-
-    if (favorites.length === 0) {
-        return (
-            <div>
-                <AddButton disabled={!activeDocumentId} sendToMain={sendToMain} />
-                <p style={{ color: "var(--color-text-muted)", marginTop: "16px", fontFamily: "var(--font-family)", fontSize: "var(--font-size)" }}>
-                    No favorites yet. Open a document and click + Add current document.
-                </p>
-            </div>
-        );
-    }
-
-    return (
-        <div
-            ref={containerRef}
-            tabIndex={0}
-            style={{ outline: "none" }}
-        >
-            <AddButton disabled={!activeDocumentId || isActiveAlreadyFavorited} sendToMain={sendToMain} />
-            <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "8px", tableLayout: "fixed", fontFamily: "var(--font-family)", fontSize: "var(--font-size)" }}>
-                <colgroup>
-                    <col style={{ width: "28px" }} />
-                    <col />
-                    <col style={{ width: "60px" }} />
-                </colgroup>
-                <thead>
-                    <tr style={{ borderBottom: "1px solid var(--color-border)", color: "var(--color-text-muted)" }}>
-                        <th style={{ padding: "4px 4px", userSelect: "none", fontWeight: "normal" }} />
-                        <th
-                            onClick={() => toggleSort("documentName")}
-                            style={{ textAlign: "left", cursor: "pointer", padding: "4px 8px", userSelect: "none", fontWeight: "normal" }}
-                        >
-                            Name<SortIndicator col="documentName" preferences={preferences} />
-                        </th>
-                        <th
-                            onClick={() => toggleSort("documentType")}
-                            style={{ textAlign: "left", cursor: "pointer", padding: "4px 8px", userSelect: "none", fontWeight: "normal", width: "60px" }}
-                        >
-                            Type<SortIndicator col="documentType" preferences={preferences} />
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {sorted.map(entry => (
-                        <FavoriteRow
-                            key={entry.documentId}
-                            entry={entry}
-                            isActive={entry.documentId === activeDocumentId}
-                            isFocused={entry.documentId === focusedId}
-                            onFocus={() => {
-                                setFocusedId(entry.documentId);
-                                containerRef.current?.focus();
-                            }}
-                            onDoubleClick={() => sendToMain({ type: "openDocument", documentId: entry.documentId })}
-                            onContextMenu={(e) => {
-                                e.preventDefault();
-                                setFocusedId(entry.documentId);
-                                setContextMenu({ x: e.clientX, y: e.clientY, documentId: entry.documentId });
-                            }}
-                        />
-                    ))}
-                </tbody>
-            </table>
-            {contextMenu && (
-                <ContextMenu
-                    x={contextMenu.x}
-                    y={contextMenu.y}
-                    documentId={contextMenu.documentId}
-                    onClose={() => setContextMenu(null)}
-                    sendToMain={sendToMain}
-                />
-            )}
-        </div>
-    );
-}
-
 function ContextMenuItem({ label, onClick }: { label: string; onClick: () => void }) {
     const [hovered, setHovered] = useState(false);
     return (
@@ -432,6 +312,126 @@ function ContextMenu({
     );
 }
 
+function sortFavorites(favorites: FavoriteEntry[], prefs: Preferences): FavoriteEntry[] {
+    return [...favorites].sort((a, b) => {
+        const aVal = a[prefs.sortColumn].toLowerCase();
+        const bVal = b[prefs.sortColumn].toLowerCase();
+        const cmp = aVal.localeCompare(bVal);
+        return prefs.sortDirection === "asc" ? cmp : -cmp;
+    });
+}
+
+function SortIndicator({ col, preferences }: { col: SortColumn; preferences: Preferences }) {
+    if (preferences.sortColumn !== col) return null;
+    return <span>{preferences.sortDirection === "asc" ? " ▲" : " ▼"}</span>;
+}
+
+function FavoritesTable({
+    favorites,
+    activeDocumentId,
+    preferences,
+    sendToMain,
+}: {
+    favorites: FavoriteEntry[];
+    activeDocumentId: string | null;
+    preferences: Preferences;
+    sendToMain: (msg: PaneToMainMessage) => Promise<void>;
+}) {
+    const [focusedId, setFocusedId] = useState<string | null>(null);
+    const [contextMenu, setContextMenu] = useState<{ x: number; y: number; documentId: string } | null>(null);
+    const containerRef = React.useRef<HTMLDivElement>(null);
+    const handleCloseContextMenu = useCallback(() => setContextMenu(null), []);
+
+    const isActiveAlreadyFavorited = favorites.some(f => f.documentId === activeDocumentId);
+    const sorted = sortFavorites(favorites, preferences);
+
+    // Clear focus if focused entry was removed externally
+    useEffect(() => {
+        if (focusedId !== null && !favorites.some(f => f.documentId === focusedId)) {
+            setFocusedId(null);
+        }
+    }, [favorites, focusedId]);
+
+    function toggleSort(column: SortColumn) {
+        const direction =
+            preferences.sortColumn === column && preferences.sortDirection === "asc" ? "desc" : "asc";
+        sendToMain({ type: "savePreferences", sortColumn: column, sortDirection: direction });
+    }
+
+    if (favorites.length === 0) {
+        return (
+            <div>
+                <AddButton disabled={!activeDocumentId} sendToMain={sendToMain} />
+                <p style={{ color: "var(--color-text-muted)", marginTop: "16px", fontFamily: "var(--font-family)", fontSize: "var(--font-size)" }}>
+                    No favorites yet. Open a document and click + Add current document.
+                </p>
+            </div>
+        );
+    }
+
+    return (
+        <div
+            ref={containerRef}
+            tabIndex={0}
+            style={{ outline: "none" }}
+        >
+            <AddButton disabled={!activeDocumentId || isActiveAlreadyFavorited} sendToMain={sendToMain} />
+            <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "8px", tableLayout: "fixed", fontFamily: "var(--font-family)", fontSize: "var(--font-size)" }}>
+                <colgroup>
+                    <col style={{ width: "28px" }} />
+                    <col />
+                </colgroup>
+                <thead>
+                    <tr style={{ borderBottom: "1px solid var(--color-border)", color: "var(--color-text-muted)" }}>
+                        <th
+                            onClick={() => toggleSort("documentType")}
+                            style={{ cursor: "pointer", padding: "4px 4px", userSelect: "none", fontWeight: "normal", textAlign: "center" }}
+                            title="Sort by type"
+                        >
+                            <SortIndicator col="documentType" preferences={preferences} />
+                        </th>
+                        <th
+                            onClick={() => toggleSort("documentName")}
+                            style={{ textAlign: "left", cursor: "pointer", padding: "4px 8px", userSelect: "none", fontWeight: "normal" }}
+                        >
+                            Name<SortIndicator col="documentName" preferences={preferences} />
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {sorted.map(entry => (
+                        <FavoriteRow
+                            key={entry.documentId}
+                            entry={entry}
+                            isActive={entry.documentId === activeDocumentId}
+                            isFocused={entry.documentId === focusedId}
+                            onFocus={() => {
+                                setFocusedId(entry.documentId);
+                                containerRef.current?.focus();
+                            }}
+                            onDoubleClick={() => sendToMain({ type: "openDocument", documentId: entry.documentId })}
+                            onContextMenu={(e) => {
+                                e.preventDefault();
+                                setFocusedId(entry.documentId);
+                                setContextMenu({ x: e.clientX, y: e.clientY, documentId: entry.documentId });
+                            }}
+                        />
+                    ))}
+                </tbody>
+            </table>
+            {contextMenu && (
+                <ContextMenu
+                    x={contextMenu.x}
+                    y={contextMenu.y}
+                    documentId={contextMenu.documentId}
+                    onClose={handleCloseContextMenu}
+                    sendToMain={sendToMain}
+                />
+            )}
+        </div>
+    );
+}
+
 function AddButton({
     disabled,
     sendToMain,
@@ -501,7 +501,6 @@ function FavoriteRow({
             }}>
                 {entry.documentName}
             </td>
-            <td style={{ width: "60px" }} />
         </tr>
     );
 }
