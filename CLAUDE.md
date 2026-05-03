@@ -74,6 +74,9 @@ The sandboxed webview environment is more constrained than the TypeScript types 
 - Any API that works in the type definitions may still throw at runtime if that feature is not available in the running Studio Pro version. Always guard with try/catch.
 - `studioPro.ui.preferences.getPreferences()` is the correct path for the preferences API (not `studioPro.app.preferences`).
 
+### IAppFilesApi cannot read dotfiles
+`files.getFile("path/.filename")` silently fails (throws) for files whose name starts with `.` — the file exists on disk but the API cannot read it. Use regular filenames without a leading dot.
+
 ### Mendix document type strings are fully qualified
 The Extensions API returns document types as fully-qualified module-scoped strings, not simple names:
 - `"Pages$Page"` (not `"Page"`)
