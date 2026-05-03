@@ -177,7 +177,7 @@ const state: State = {
 Add one `await` call just before the pane is registered (before the `studioPro.ui.panes.register` call):
 
 ```ts
-const spPrefs = await studioPro.app.preferences.getPreferences();
+const spPrefs = await studioPro.ui.preferences.getPreferences();
 state.theme = spPrefs.theme;
 ```
 
