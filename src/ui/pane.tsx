@@ -358,6 +358,27 @@ function FavoritesTable({
         sendToMain({ type: "savePreferences", sortColumn: column, sortDirection: direction });
     }
 
+    function handleKeyDown(e: React.KeyboardEvent) {
+        if (sorted.length === 0) return;
+        const idx = sorted.findIndex(f => f.documentId === focusedId);
+
+        if (e.key === "ArrowDown") {
+            e.preventDefault();
+            setFocusedId(sorted[idx === -1 ? 0 : Math.min(idx + 1, sorted.length - 1)].documentId);
+        } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            setFocusedId(sorted[idx === -1 ? sorted.length - 1 : Math.max(idx - 1, 0)].documentId);
+        } else if (e.key === "Enter" && focusedId) {
+            sendToMain({ type: "openDocument", documentId: focusedId });
+        } else if ((e.key === "Delete" || e.key === "Backspace") && focusedId) {
+            e.preventDefault();
+            const nextIdx = idx + 1 < sorted.length ? idx + 1 : idx - 1;
+            const nextId = nextIdx >= 0 ? (sorted[nextIdx]?.documentId ?? null) : null;
+            sendToMain({ type: "removeFavorite", documentId: focusedId });
+            setFocusedId(nextId);
+        }
+    }
+
     if (favorites.length === 0) {
         return (
             <div>
@@ -374,6 +395,7 @@ function FavoritesTable({
             ref={containerRef}
             tabIndex={0}
             style={{ outline: "none" }}
+            onKeyDown={handleKeyDown}
         >
             <AddButton disabled={!activeDocumentId || isActiveAlreadyFavorited} sendToMain={sendToMain} />
             <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "8px", tableLayout: "fixed", fontFamily: "var(--font-family)", fontSize: "var(--font-size)" }}>
