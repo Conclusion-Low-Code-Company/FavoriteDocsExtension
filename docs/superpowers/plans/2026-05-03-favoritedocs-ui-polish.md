@@ -366,18 +366,21 @@ const MICROFLOW_ICON = (
     </TypeIcon>
 );
 
-// Nanoflow: lightning bolt (outline)
+// Nanoflow: rectangle with play triangle inside (like Microflow but rect instead of circle)
 const NANOFLOW_ICON = (
     <TypeIcon>
-        <path d="M9 1L4 8h4l-3 5 8-8H9z"/>
+        <rect x="1.5" y="1.5" width="11" height="11"/>
+        <path d="M5 4.5l5 2.5-5 2.5z"/>
     </TypeIcon>
 );
 
-// Snippet: two overlapping rectangles (reusable piece)
+// Snippet: page outline with fold + opening/closing square brackets inside
 const SNIPPET_ICON = (
     <TypeIcon>
-        <rect x="1" y="4" width="8" height="7"/>
-        <path d="M5 1h8v7h-2"/>
+        <path d="M2 1h6l4 4v8H2z"/>
+        <polyline points="8,1 8,5 12,5"/>
+        <polyline points="5,7 3.5,7 3.5,11 5,11"/>
+        <polyline points="9,7 10.5,7 10.5,11 9,11"/>
     </TypeIcon>
 );
 
