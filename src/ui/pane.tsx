@@ -186,7 +186,7 @@ function FavoritesPane({
     }
 
     return (
-        <div style={{ padding: "8px", fontFamily: "sans-serif", fontSize: "13px" }}>
+        <div style={{ padding: "8px", fontFamily: "var(--font-family)", fontSize: "var(--font-size)", background: "var(--color-bg)", color: "var(--color-text)", height: "100%", boxSizing: "border-box" }}>
             {state.notification && (
                 <Notification
                     message={state.notification}
@@ -461,11 +461,24 @@ function AddButton({
     disabled: boolean;
     sendToMain: (msg: PaneToMainMessage) => Promise<void>;
 }) {
+    const [hovered, setHovered] = useState(false);
     return (
         <button
             disabled={disabled}
             onClick={() => sendToMain({ type: "addFavorite" })}
-            style={{ cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.5 : 1 }}
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
+            style={{
+                fontFamily: "var(--font-family)",
+                fontSize: "var(--font-size)",
+                color: "var(--color-text)",
+                background: hovered && !disabled ? "var(--color-btn-hover)" : "var(--color-btn-bg)",
+                border: "1px solid var(--color-border)",
+                padding: "4px 10px",
+                cursor: disabled ? "default" : "pointer",
+                opacity: disabled ? 0.5 : 1,
+                width: "100%",
+            }}
         >
             + Add current document
         </button>
@@ -531,8 +544,8 @@ function IdentityForm({ onSubmit }: { onSubmit: (value: string) => void }) {
     const [value, setValue] = useState("");
 
     return (
-        <div style={{ padding: "16px", fontFamily: "sans-serif", fontSize: "13px" }}>
-            <p>
+        <div style={{ padding: "16px", fontFamily: "var(--font-family)", fontSize: "var(--font-size)", background: "var(--color-bg)", color: "var(--color-text)", height: "100%", boxSizing: "border-box" }}>
+            <p style={{ marginTop: 0 }}>
                 Enter your name to identify your favorites file. Using a different name
                 next time will create a new empty file and leave the old one behind.
                 Keep note of this name.
@@ -543,13 +556,32 @@ function IdentityForm({ onSubmit }: { onSubmit: (value: string) => void }) {
                 onChange={(e) => setValue(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter" && value.trim()) onSubmit(value.trim()); }}
                 placeholder="Your name"
-                style={{ width: "100%", boxSizing: "border-box", marginBottom: "8px", padding: "4px 6px" }}
+                style={{
+                    width: "100%",
+                    boxSizing: "border-box",
+                    marginBottom: "8px",
+                    padding: "4px 6px",
+                    fontFamily: "var(--font-family)",
+                    fontSize: "var(--font-size)",
+                    background: "var(--color-btn-bg)",
+                    color: "var(--color-text)",
+                    border: "1px solid var(--color-border)",
+                }}
                 autoFocus
             />
             <button
                 disabled={!value.trim()}
                 onClick={() => onSubmit(value.trim())}
-                style={{ opacity: value.trim() ? 1 : 0.5 }}
+                style={{
+                    fontFamily: "var(--font-family)",
+                    fontSize: "var(--font-size)",
+                    color: "var(--color-text)",
+                    background: "var(--color-btn-bg)",
+                    border: "1px solid var(--color-border)",
+                    padding: "4px 10px",
+                    cursor: value.trim() ? "pointer" : "default",
+                    opacity: value.trim() ? 1 : 0.5,
+                }}
             >
                 Save
             </button>
@@ -559,23 +591,22 @@ function IdentityForm({ onSubmit }: { onSubmit: (value: string) => void }) {
 
 function Notification({ message, onDismiss }: { message: string; onDismiss: () => void }) {
     return (
-        <div
-            style={{
-                background: "#fff3cd",
-                border: "1px solid #ffc107",
-                borderRadius: "4px",
-                padding: "6px 10px",
-                marginBottom: "8px",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                fontSize: "12px",
-            }}
-        >
+        <div style={{
+            background: "var(--color-btn-bg)",
+            border: "1px solid var(--color-border)",
+            padding: "6px 10px",
+            marginBottom: "8px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            fontFamily: "var(--font-family)",
+            fontSize: "var(--font-size)",
+            color: "var(--color-text)",
+        }}>
             <span>{message}</span>
             <button
                 onClick={onDismiss}
-                style={{ border: "none", background: "none", cursor: "pointer", marginLeft: "8px" }}
+                style={{ border: "none", background: "none", cursor: "pointer", marginLeft: "8px", color: "var(--color-text)", fontSize: "var(--font-size)" }}
                 title="Dismiss"
             >
                 ×
@@ -594,37 +625,39 @@ function DocumentNotFoundModal({
     onKeep: () => void;
 }) {
     return (
-        <div
-            style={{
-                position: "fixed",
-                inset: 0,
-                background: "rgba(0,0,0,0.4)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                zIndex: 1000,
-            }}
-        >
-            <div
-                style={{
-                    background: "#fff",
-                    borderRadius: "6px",
-                    padding: "20px",
-                    maxWidth: "380px",
-                    boxShadow: "0 4px 16px rgba(0,0,0,0.2)",
-                    fontFamily: "sans-serif",
-                    fontSize: "13px",
-                }}
-            >
+        <div style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+        }}>
+            <div style={{
+                background: "var(--color-menu-bg)",
+                border: "1px solid var(--color-border)",
+                padding: "20px",
+                maxWidth: "380px",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.3)",
+                fontFamily: "var(--font-family)",
+                fontSize: "var(--font-size)",
+                color: "var(--color-text)",
+            }}>
                 <p style={{ margin: "0 0 16px" }}>
                     The document <strong>'{info.documentName}'</strong> ({info.moduleName}) could
                     not be opened. It may have been deleted or renamed.
                 </p>
                 <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
-                    <button onClick={onKeep}>Keep</button>
+                    <button
+                        onClick={onKeep}
+                        style={{ fontFamily: "var(--font-family)", fontSize: "var(--font-size)", color: "var(--color-text)", background: "var(--color-btn-bg)", border: "1px solid var(--color-border)", padding: "4px 10px", cursor: "pointer" }}
+                    >
+                        Keep
+                    </button>
                     <button
                         onClick={onRemove}
-                        style={{ background: "#dc3545", color: "#fff", border: "none", borderRadius: "4px", padding: "4px 10px", cursor: "pointer" }}
+                        style={{ fontFamily: "var(--font-family)", fontSize: "var(--font-size)", color: "#fff", background: "#c0392b", border: "none", padding: "4px 10px", cursor: "pointer" }}
                     >
                         Remove from Favorites
                     </button>
