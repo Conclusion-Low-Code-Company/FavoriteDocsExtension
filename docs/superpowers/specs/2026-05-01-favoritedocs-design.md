@@ -27,6 +27,7 @@ A Mendix Studio Pro web extension that lets developers mark any document as a fa
 - Auto-sync on document rename
 - Right-click context menu in App Explorer (not available in the SP11 web extension API)
 - **Rethink identity / filename UX** — the current flow hashes a user-supplied name into an opaque filename. Improvements to consider: (1) keep the name human-readable in the filename so the file is recognisable in git; (2) on first run, show any existing favorites files in the project and let the user pick one (or create new) — this makes it easy to re-use the same file when switching machines; (3) the name is currently just a hash key, but it could double as a display label shown in the pane header ("Bart's favorites").
+- **Default pane position to left** — change `initialPosition` from `"right"` to `"left"` so the pane opens on the same side as the App Explorer by default (one-line change in `main/index.ts`). The API only supports dockable panes (`"left"` | `"right"` | `"bottom"`); a truly pinned/always-visible non-dockable panel is not available in the Extensions API v0.8.0. The user can still drag it above the App Explorer manually, but `"left"` makes that the starting point.
 
 ---
 
