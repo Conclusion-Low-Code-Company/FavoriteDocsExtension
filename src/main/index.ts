@@ -56,6 +56,8 @@ export const component: IComponent = {
             };
             try {
                 await saveFavorites(files, state.identityHash, file);
+                // Write identity after saveFavorites so the directory is guaranteed to exist
+                await saveIdentityHash(files, state.identityHash);
             } catch {
                 await broadcast({ type: "notification", message: "Favorites could not be saved. Changes may be lost." });
             }
