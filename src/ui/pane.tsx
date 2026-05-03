@@ -109,6 +109,8 @@ function applyMessage(prev: PaneState, msg: MainToPaneMessage): PaneState {
             return { ...prev, activeDocumentId: msg.documentId };
         case "preferencesChanged":
             return { ...prev, preferences: { sortColumn: msg.sortColumn, sortDirection: msg.sortDirection } };
+        case "studioThemeChanged":
+            return prev; // Theme change handled by main; pane re-renders on state updates
         case "needsIdentity":
             return { ...prev, needsIdentity: true };
         case "documentNotFound":
@@ -179,12 +181,6 @@ function FavoritesTable({
                 <thead>
                     <tr>
                         <th
-                            onClick={() => toggleSort("moduleName")}
-                            style={{ textAlign: "left", cursor: "pointer", padding: "4px 8px", userSelect: "none" }}
-                        >
-                            Module<SortIndicator col="moduleName" />
-                        </th>
-                        <th
                             onClick={() => toggleSort("documentName")}
                             style={{ textAlign: "left", cursor: "pointer", padding: "4px 8px", userSelect: "none" }}
                         >
@@ -254,7 +250,6 @@ function FavoriteRow({
             onMouseLeave={() => setHovered(false)}
             onDoubleClick={() => sendToMain({ type: "openDocument", documentId: entry.documentId })}
         >
-            <td style={{ padding: "3px 8px" }}>{entry.moduleName}</td>
             <td style={{ padding: "3px 8px" }}>{entry.documentName}</td>
             <td style={{ padding: "3px 8px", color: "#666" }}>{entry.documentType}</td>
             <td style={{ padding: "3px 4px", width: "24px" }}>
