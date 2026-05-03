@@ -1,57 +1,51 @@
 # FavoriteDocs
 
-A Mendix Studio Pro web extension that lets you mark documents as favorites and access them from a persistent dockable pane.
+A Mendix Studio Pro extension that lets you mark documents as favorites and access them instantly from a dedicated pane.
 
-## Features
+## Installation
 
-- Add the currently open document to favorites with one click
-- Dockable **Favorites** pane with sortable list (by name or type)
-- Document type icons (Page, Microflow, Nanoflow, Snippet)
-- Double-click a favorite to open it; right-click for context menu (Open / Remove)
-- Keyboard navigation — arrow keys, Enter to open, Delete to remove
-- Dark and light theme support, matching Studio Pro's current theme
-- Per-user favorites file stored in the project directory and committed to git
+Install **FavoriteDocs** from the Mendix Marketplace inside Studio Pro.
 
-## Requirements
+## Activation
 
-- Mendix Studio Pro 11.9+
-- Node.js (for building)
+Open the pane via **Extensions → FavoriteDocs → Show Favorites** in the Studio Pro menu bar.
 
-## Setup
+## First run
 
-```bash
-npm install
-```
+The first time you open the pane, you will be asked to enter a name. This name identifies your personal favorites file within the project. Choose anything you like — your first name works fine. You will not be asked again on this machine.
 
-Then update `appDir` in `build-extension.mjs` to point to your local Mendix app directory:
+> If you work on the same project from multiple machines, enter the same name on each machine to share the same favorites file.
 
-```js
-const appDir = "C:\\Mendix\\YourApp"
-```
+## Usage
 
-## Development
+### Adding a favorite
 
-```bash
-# Build once (type-check + bundle + deploy to app directory)
-npm run build
+Open any document in Studio Pro, then click **+ Add current document** at the top of the Favorites pane.
 
-# Build and watch for changes
-npm run build:dev
-```
+### Opening a favorite
 
-Use the VS Code launch config **"Launch StudioPro with debugger attached"** to open Studio Pro with the extension loaded and the Edge DevTools debugger attached. Breakpoints work against TypeScript source via source maps.
+**Double-click** any row to open the document.
 
-## How it works
+### Removing a favorite
 
-The extension has two entry points:
+**Right-click** a row and choose **Remove as favorite**.
 
-| File | Role |
+### Keyboard navigation
+
+| Key | Action |
 |---|---|
-| `src/main/index.ts` | Background context — owns all state, handles disk I/O, broadcasts to the pane |
-| `src/ui/pane.tsx` | Pane UI — pure React renderer, sends messages to main |
+| ↑ / ↓ | Move between rows |
+| Enter | Open the focused document |
+| Delete / Backspace | Remove the focused document |
 
-Favorites are stored as `favorites/<hash>.json` in the project directory. The hash is derived from a user-supplied name (entered once on first run) and persisted in `favorites/.identity` so subsequent runs don't prompt again.
+### Sorting
 
-## Backlog
+Click the **Name** column header to sort alphabetically. Click the icon column header to sort by document type. Click again to reverse the order.
 
-See [docs/backlog.md](docs/backlog.md).
+### Tooltip
+
+Hover over any row to see the full document name and its module.
+
+## Favorites file
+
+Your favorites are stored in a `favorites/` folder inside your Mendix project directory and committed to git. Each team member has their own file, so favorites don't interfere with each other.
