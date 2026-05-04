@@ -1,16 +1,6 @@
 # FavoriteDocs — Backlog
 
-Items marked **release 2** are the next planned batch. Everything else is unscheduled.
-
----
-
-## Release 2
-
 - **Default pane position to left** — change `initialPosition` from `"right"` to `"left"` in `main/index.ts` (one-line change) so the pane opens on the App Explorer side by default. A truly pinned/non-dockable panel is not available in the Extensions API v0.8.0.
-
----
-
-## Unscheduled
 
 - **Remember last selected list across restarts** — when Studio Pro is reopened, automatically pre-select the list the user had open in the previous session, so they don't have to pick from the dropdown every time. Currently the selection resets on every restart and the user must choose again.
 
