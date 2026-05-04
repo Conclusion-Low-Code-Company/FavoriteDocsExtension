@@ -42,7 +42,12 @@
       "Bash(git -C C:\\\\git\\\\FavoriteDocs\\\\.worktrees\\\\ui-polish diff b6bedba..7c61c11 -- src/ui/pane.tsx)",
       "Bash(git show *)",
       "PowerShell(Get-ChildItem \"c:\\\\git\\\\FavoriteDocs\" -MaxDepth 1 -File | Where-Object { $_.Extension -in '.js', '.map' } | Select-Object Name)",
-      "PowerShell(Get-ChildItem \"c:\\\\git\\\\FavoriteDocs\" | Where-Object { !$_.PSIsContainer -and $_.Extension -in '.js', '.map' } | Select-Object Name)"
+      "PowerShell(Get-ChildItem \"c:\\\\git\\\\FavoriteDocs\" | Where-Object { !$_.PSIsContainer -and $_.Extension -in '.js', '.map' } | Select-Object Name)",
+      "Bash(Get-ChildItem \"C:\\\\Mendix\\\\ExtTest\\\\favorites\\\\\" -Force 2>/dev/null | Select-Object Name)",
+      "Read(//c/Mendix/ExtTest/favorites/**)",
+      "WebFetch(domain:apidocs.rnd.mendix.com)",
+      "Bash(Get-ChildItem -Path \"c:\\\\git\\\\FavoriteDocs\" -Directory)",
+      "Bash(Select-Object Name)"
     ],
     "additionalDirectories": [
       "c:\\Users\\bartheijs\\.claude\\projects\\c--Mendix-EXT-Development-main-Extensions-FavoriteDocs\\memory"

@@ -19,7 +19,7 @@ There are no tests. Type-checking (`tsc --noEmit`) runs as part of every build.
 The build pipeline (via `build-extension.mjs` + `build.helpers.mjs`) does two things after a successful compile:
 
 1. Copies `src/manifest.json` into `dist/FavoriteDocs/`
-2. Copies the entire `dist/FavoriteDocs/` folder into `C:\Mendix\EXT_Development-main\extensions\FavoriteDocs\` — the live Mendix app's extension directory
+2. Copies the entire `dist/FavoriteDocs/` folder into `C:\Mendix\EXT_Development-mx-11.10.0\extensions\FavoriteDocs\` — the live Mendix app's extension directory
 
 `appDir` and `extensionDirectoryName` in `build-extension.mjs` control this. If the app directory doesn't exist the copy is skipped with a warning (build still succeeds).
 
@@ -42,6 +42,33 @@ Declared in `src/manifest.json` and compiled by `build-extension.mjs`:
 
 To add a new UI entry point (e.g. a pane), add a file to `src/ui/`, push a new entry to the `entryPoints` array in `build-extension.mjs`, and add the entry to the `"ui"` map in `src/manifest.json`.
 
+### Data model
+
+All favorites data is stored in a single file: `favoriteDocs/favorite-docs.json` (inside the Mendix project directory). The format is:
+
+```json
+{
+  "version": 1,
+  "lists": {
+    "bart": {
+      "preferences": { "sortColumn": "documentName", "sortDirection": "asc" },
+      "favorites": [{ "documentId": "...", "documentName": "...", "moduleName": "...", "documentType": "..." }]
+    }
+  }
+}
+```
+
+Each key in `lists` is a sanitized user name (lowercase, underscores). Multiple developers share the same file; each has their own named list. The file is read via `loadAll()` in `src/main/storage.ts` and written via `saveAll()`.
+
+### State ownership
+
+`main` (`src/main/index.ts`) owns all state: the full `AllFavoritesFile`, the currently selected identity key, and the active favorites/preferences for that key. The pane (`src/ui/pane.tsx`) is a pure renderer — it sends messages to `main` and re-renders on broadcasts.
+
+Key messages:
+- `listOptions` (main → pane): list of available user names + which is currently selected
+- `selectList` (pane → main): user picks or creates a list by name
+- `favoritesChanged` (main → pane): updated favorites array for the current list
+
 ### Key API surface
 
 All interaction with Studio Pro goes through `getStudioProApi(componentContext)`:
@@ -59,7 +86,7 @@ All interaction with Studio Pro goes through `getStudioProApi(componentContext)`
 
 ### Extension API version
 
-`@mendix/extensions-api` is pinned to `^0.8.0-mendix.11.9.0` (Studio Pro 11.9). The API is in beta. Reference docs: http://apidocs.rnd.mendix.com/11/extensions-api/index.html
+`@mendix/extensions-api` is pinned to `^0.8.0-mendix.11.10.0` (Studio Pro 11.10). The API is in beta. Reference docs: http://apidocs.rnd.mendix.com/11/extensions-api/index.html
 
 ---
 
@@ -74,8 +101,14 @@ The sandboxed webview environment is more constrained than the TypeScript types 
 - Any API that works in the type definitions may still throw at runtime if that feature is not available in the running Studio Pro version. Always guard with try/catch.
 - `studioPro.ui.preferences.getPreferences()` is the correct path for the preferences API (not `studioPro.app.preferences`).
 
+### IAppFilesApi: read all file calls in `loaded()` at startup
+`files.getFile()` and `files.getFiles()` return empty or throw when called inside `loaded()` at Studio Pro startup — even for files that exist on disk from a previous session. The API is not ready at that point. Always defer file reads to after first user interaction, e.g. inside the `paneReady` message handler rather than in `loaded()`.
+
 ### IAppFilesApi requires the directory to exist before putFile
-`files.putFile("favorites/identity.json", ...)` silently fails if the `favorites/` directory does not exist yet. The directory is only created implicitly when the first file is written into it. Always ensure a directory-creating write (e.g. writing the main data file) happens before writing any secondary files into the same directory.
+`files.putFile("favoriteDocs/favorite-docs.json", ...)` silently fails if the `favoriteDocs/` directory does not exist yet. The directory is only created implicitly when the first file is successfully written into it. Always ensure the directory exists before writing secondary files into it.
+
+### IAppFilesApi: putFile works, getFile does not work at root level
+Writing a file to the project root (e.g. `files.putFile("myfile.json", ...)`) succeeds and the file appears on disk, but `files.getFile("myfile.json")` returns "Not Found". Root-level reads do not work. Always write files inside a subdirectory (e.g. `favoriteDocs/`).
 
 ### IAppFilesApi only reliably reads .json files
 `files.getFile()` silently fails for files without a `.json` extension — the file exists on disk but the API throws when reading it. Always use `.json` filenames. Also cannot read dotfiles (names starting with `.`).

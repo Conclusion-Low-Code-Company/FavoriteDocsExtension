@@ -13,10 +13,14 @@ export interface Preferences {
     sortDirection: SortDirection;
 }
 
-export interface FavoritesFile {
-    version: 1;
+export interface UserList {
     preferences: Preferences;
     favorites: FavoriteEntry[];
+}
+
+export interface AllFavoritesFile {
+    version: 1;
+    lists: Record<string, UserList>;
 }
 
 export const DEFAULT_PREFERENCES: Preferences = {
@@ -32,7 +36,7 @@ export type PaneToMainMessage =
     | { type: "removeFavorite"; documentId: string }
     | { type: "openDocument"; documentId: string }
     | { type: "savePreferences"; sortColumn: SortColumn; sortDirection: SortDirection }
-    | { type: "setIdentity"; value: string };
+    | { type: "selectList"; name: string };
 
 // ── main → pane ──────────────────────────────────────────────────────────────
 
@@ -41,6 +45,6 @@ export type MainToPaneMessage =
     | { type: "activeDocumentChanged"; documentId: string | null }
     | { type: "preferencesChanged"; sortColumn: SortColumn; sortDirection: SortDirection }
     | { type: "studioThemeChanged"; theme: "Light" | "Dark" }
-    | { type: "needsIdentity" }
+    | { type: "listOptions"; names: string[]; selected: string | null }
     | { type: "documentNotFound"; documentId: string; documentName: string; moduleName: string }
     | { type: "notification"; message: string };

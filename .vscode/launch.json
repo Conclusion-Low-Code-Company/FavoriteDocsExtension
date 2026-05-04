@@ -6,7 +6,7 @@
             "type": "msedge",
             "useWebView": true,
             "runtimeExecutable": "C:\\Program Files\\Mendix\\11.10.0\\modeler\\studiopro.exe",
-            "runtimeArgs": ["C:\\Mendix\\EXT_Development-main\\EXT_Development.mpr", "--enable-extension-development", "--enable-web-extensions"],
+            "runtimeArgs": ["C:\\Mendix\\EXT_Development-mx-11.10.0\\EXT_Development.mpr", "--enable-extension-development", "--enable-web-extensions"],
             "request": "launch",
             "webRoot": "${workspaceFolder}/dist/FavoriteDocs"
         }

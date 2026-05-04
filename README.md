@@ -12,11 +12,19 @@ Open the pane via **Extensions → FavoriteDocs → Show Favorites** in the Stud
 
 ## First run
 
-The first time you open the pane, you will be asked to enter a name. This name identifies your personal favorites file within the project. Choose anything you like — your first name works fine. You will not be asked again on this machine.
+The first time you open the pane, you will be asked to create a favorites list by entering a name — your first name works fine. This creates a personal list inside the shared favorites file for this project.
 
-> If you work on the same project from multiple machines, enter the same name on each machine to share the same favorites file.
+From then on, a dropdown at the top of the pane lets you choose which list to work with. If you are the only developer on the project, your list is selected automatically.
 
 ## Usage
+
+### Switching lists
+
+Use the dropdown at the top of the pane to switch between favorites lists. Each team member has their own list — select yours before making changes.
+
+### Creating a new list
+
+Click the **+** button next to the dropdown to create an additional list.
 
 ### Adding a favorite
 
@@ -48,4 +56,4 @@ Hover over any row to see the full document name and its module.
 
 ## Favorites file
 
-Your favorites are stored in a `favorites/` folder inside your Mendix project directory and committed to git. Each team member has their own file, so favorites don't interfere with each other.
+All favorites lists are stored together in a single `favoriteDocs/favorite-docs.json` file inside your Mendix project directory. The file is committed to git so favorites are shared across machines and team members can each maintain their own list within it.

@@ -113,7 +113,8 @@ interface PaneState {
     activeDocumentId: string | null;
     preferences: Preferences;
     theme: "Light" | "Dark";
-    needsIdentity: boolean;
+    listNames: string[];
+    currentList: string | null;
     documentNotFound: { documentId: string; documentName: string; moduleName: string } | null;
     notification: string | null;
 }
@@ -162,8 +163,9 @@ function FavoritesPane({
         favorites: [],
         activeDocumentId: null,
         preferences: DEFAULT_PREFERENCES,
-        theme: "Dark",
-        needsIdentity: false,
+        theme: window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "Dark" : "Light",
+        listNames: [],
+        currentList: null,
         documentNotFound: null,
         notification: null,
     });
@@ -181,35 +183,104 @@ function FavoritesPane({
         }
     }, [state.theme]);
 
-    if (state.needsIdentity) {
-        return <IdentityForm onSubmit={(value) => sendToMain({ type: "setIdentity", value })} />;
+    const [showCreate, setShowCreate] = useState(false);
+    const [newName, setNewName] = useState("");
+
+    const handleCreate = () => {
+        if (!newName.trim()) return;
+        sendToMain({ type: "selectList", name: newName.trim() });
+        setNewName("");
+        setShowCreate(false);
+    };
+
+    // No lists yet — first time setup
+    if (state.listNames.length === 0) {
+        return (
+            <div style={{ padding: "16px", fontFamily: "var(--font-family)", fontSize: "var(--font-size)", background: "var(--color-bg)", color: "var(--color-text)", height: "100%", boxSizing: "border-box" }}>
+                <p style={{ marginTop: 0, marginBottom: "8px", fontWeight: "bold" }}>Create your favorites list</p>
+                <input
+                    type="text"
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") handleCreate(); }}
+                    placeholder="Your name"
+                    autoFocus
+                    style={{ width: "100%", boxSizing: "border-box", padding: "4px 6px", fontFamily: "var(--font-family)", fontSize: "var(--font-size)", background: "var(--color-btn-bg)", color: "var(--color-text)", border: "1px solid var(--color-border)" }}
+                />
+                <button type="button" onClick={handleCreate} disabled={!newName.trim()}
+                    style={{ marginTop: "6px", fontFamily: "var(--font-family)", fontSize: "var(--font-size)", color: "var(--color-text)", background: "var(--color-btn-bg)", border: "1px solid var(--color-border)", padding: "4px 10px", cursor: newName.trim() ? "pointer" : "default", opacity: newName.trim() ? 1 : 0.5 }}>
+                    Create
+                </button>
+            </div>
+        );
     }
 
+    // Normal view — persistent dropdown header + favorites
     return (
-        <div style={{ padding: "8px", fontFamily: "var(--font-family)", fontSize: "var(--font-size)", background: "var(--color-bg)", color: "var(--color-text)", height: "100%", boxSizing: "border-box" }}>
-            {state.notification && (
-                <Notification
-                    message={state.notification}
-                    onDismiss={() => setState((prev) => ({ ...prev, notification: null }))}
-                />
+        <div style={{ fontFamily: "var(--font-family)", fontSize: "var(--font-size)", background: "var(--color-bg)", color: "var(--color-text)", height: "100%", boxSizing: "border-box", display: "flex", flexDirection: "column" }}>
+            {/* List selector header */}
+            <div style={{ display: "flex", alignItems: "center", gap: "4px", padding: "4px 8px", borderBottom: "1px solid var(--color-border)", flexShrink: 0 }}>
+                <select
+                    value={state.currentList ?? ""}
+                    title="Your favorites list"
+                    onChange={(e) => sendToMain({ type: "selectList", name: e.target.value })}
+                    style={{ flex: 1, padding: "3px 4px", fontFamily: "var(--font-family)", fontSize: "var(--font-size)", background: "var(--color-btn-bg)", color: "var(--color-text)", border: "1px solid var(--color-border)" }}
+                >
+                    {state.listNames.map(n => <option key={n} value={n}>{n}</option>)}
+                </select>
+                <button
+                    type="button"
+                    title="Create new list"
+                    onClick={() => { setShowCreate(v => !v); setNewName(""); }}
+                    style={{ fontFamily: "var(--font-family)", fontSize: "var(--font-size)", color: "var(--color-text)", background: "var(--color-btn-bg)", border: "1px solid var(--color-border)", padding: "3px 8px", cursor: "pointer", fontWeight: "bold" }}
+                >
+                    +
+                </button>
+            </div>
+            {/* Inline create form */}
+            {showCreate && (
+                <div style={{ display: "flex", gap: "4px", padding: "4px 8px", borderBottom: "1px solid var(--color-border)", flexShrink: 0 }}>
+                    <input
+                        type="text"
+                        value={newName}
+                        onChange={(e) => setNewName(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === "Enter") handleCreate(); if (e.key === "Escape") setShowCreate(false); }}
+                        placeholder="New list name"
+                        autoFocus
+                        style={{ flex: 1, padding: "3px 4px", fontFamily: "var(--font-family)", fontSize: "var(--font-size)", background: "var(--color-btn-bg)", color: "var(--color-text)", border: "1px solid var(--color-border)" }}
+                    />
+                    <button type="button" onClick={handleCreate} disabled={!newName.trim()}
+                        style={{ fontFamily: "var(--font-family)", fontSize: "var(--font-size)", color: "var(--color-text)", background: "var(--color-btn-bg)", border: "1px solid var(--color-border)", padding: "3px 8px", cursor: newName.trim() ? "pointer" : "default", opacity: newName.trim() ? 1 : 0.5 }}>
+                        Create
+                    </button>
+                </div>
             )}
-            {state.documentNotFound && (
-                <DocumentNotFoundModal
-                    info={state.documentNotFound}
-                    onRemove={() => {
-                        const id = state.documentNotFound!.documentId;
-                        setState((prev) => ({ ...prev, documentNotFound: null }));
-                        sendToMain({ type: "removeFavorite", documentId: id });
-                    }}
-                    onKeep={() => setState((prev) => ({ ...prev, documentNotFound: null }))}
+            {/* Content area */}
+            <div style={{ flex: 1, overflow: "auto", padding: "8px" }}>
+                {state.notification && (
+                    <Notification
+                        message={state.notification}
+                        onDismiss={() => setState((prev) => ({ ...prev, notification: null }))}
+                    />
+                )}
+                {state.documentNotFound && (
+                    <DocumentNotFoundModal
+                        info={state.documentNotFound}
+                        onRemove={() => {
+                            const id = state.documentNotFound!.documentId;
+                            setState((prev) => ({ ...prev, documentNotFound: null }));
+                            sendToMain({ type: "removeFavorite", documentId: id });
+                        }}
+                        onKeep={() => setState((prev) => ({ ...prev, documentNotFound: null }))}
+                    />
+                )}
+                <FavoritesTable
+                    favorites={state.favorites}
+                    activeDocumentId={state.activeDocumentId}
+                    preferences={state.preferences}
+                    sendToMain={sendToMain}
                 />
-            )}
-            <FavoritesTable
-                favorites={state.favorites}
-                activeDocumentId={state.activeDocumentId}
-                preferences={state.preferences}
-                sendToMain={sendToMain}
-            />
+            </div>
         </div>
     );
 }
@@ -217,15 +288,15 @@ function FavoritesPane({
 function applyMessage(prev: PaneState, msg: MainToPaneMessage): PaneState {
     switch (msg.type) {
         case "favoritesChanged":
-            return { ...prev, favorites: msg.favorites, needsIdentity: false };
+            return { ...prev, favorites: msg.favorites };
         case "activeDocumentChanged":
             return { ...prev, activeDocumentId: msg.documentId };
         case "preferencesChanged":
             return { ...prev, preferences: { sortColumn: msg.sortColumn, sortDirection: msg.sortDirection } };
         case "studioThemeChanged":
             return { ...prev, theme: msg.theme };
-        case "needsIdentity":
-            return { ...prev, needsIdentity: true };
+        case "listOptions":
+            return { ...prev, listNames: msg.names, currentList: msg.selected };
         case "documentNotFound":
             return { ...prev, documentNotFound: { documentId: msg.documentId, documentName: msg.documentName, moduleName: msg.moduleName } };
         case "notification":
@@ -540,54 +611,6 @@ function FavoriteRow({
     );
 }
 
-function IdentityForm({ onSubmit }: { onSubmit: (value: string) => void }) {
-    const [value, setValue] = useState("");
-
-    return (
-        <div style={{ padding: "16px", fontFamily: "var(--font-family)", fontSize: "var(--font-size)", background: "var(--color-bg)", color: "var(--color-text)", height: "100%", boxSizing: "border-box" }}>
-            <p style={{ marginTop: 0 }}>
-                Enter your name to identify your favorites file. Using a different name
-                next time will create a new empty file and leave the old one behind.
-                Keep note of this name.
-            </p>
-            <input
-                type="text"
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter" && value.trim()) onSubmit(value.trim()); }}
-                placeholder="Your name"
-                style={{
-                    width: "100%",
-                    boxSizing: "border-box",
-                    marginBottom: "8px",
-                    padding: "4px 6px",
-                    fontFamily: "var(--font-family)",
-                    fontSize: "var(--font-size)",
-                    background: "var(--color-btn-bg)",
-                    color: "var(--color-text)",
-                    border: "1px solid var(--color-border)",
-                }}
-                autoFocus
-            />
-            <button
-                disabled={!value.trim()}
-                onClick={() => onSubmit(value.trim())}
-                style={{
-                    fontFamily: "var(--font-family)",
-                    fontSize: "var(--font-size)",
-                    color: "var(--color-text)",
-                    background: "var(--color-btn-bg)",
-                    border: "1px solid var(--color-border)",
-                    padding: "4px 10px",
-                    cursor: value.trim() ? "pointer" : "default",
-                    opacity: value.trim() ? 1 : 0.5,
-                }}
-            >
-                Save
-            </button>
-        </div>
-    );
-}
 
 function Notification({ message, onDismiss }: { message: string; onDismiss: () => void }) {
     return (
