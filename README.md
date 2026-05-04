@@ -8,11 +8,11 @@ Install **FavoriteDocs** from the Mendix Marketplace inside Studio Pro.
 
 ## Activation
 
-Open the pane via **Extensions → FavoriteDocs → Show Favorites** in the Studio Pro menu bar.
+Open the pane via **Extensions > FavoriteDocs > Show Favorites** in the Studio Pro menu bar.
 
 ## First run
 
-The first time you open the pane, you will be asked to create a favorites list by entering a name — your first name works fine. This creates a personal list inside the shared favorites file for this project.
+The first time you open the pane, you will be asked to create a favorites list by entering a name for your list. This creates a personal list inside the shared favorites file for this project.
 
 From then on, a dropdown at the top of the pane lets you choose which list to work with. If you are the only developer on the project, your list is selected automatically.
 
@@ -20,7 +20,7 @@ From then on, a dropdown at the top of the pane lets you choose which list to wo
 
 ### Switching lists
 
-Use the dropdown at the top of the pane to switch between favorites lists. Each team member has their own list — select yours before making changes.
+Use the dropdown at the top of the pane to switch between favorites lists. Each team member has their own list, select yours before making changes.
 
 ### Creating a new list
 
