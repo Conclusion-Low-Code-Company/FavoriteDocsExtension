@@ -1,4 +1,4 @@
-import React, { StrictMode, useEffect, useState, useCallback } from "react";
+import React, { StrictMode, useEffect, useState, useCallback, useMemo } from "react";
 import { createRoot } from "react-dom/client";
 import { ComponentContext, IComponent, getStudioProApi } from "@mendix/extensions-api";
 import type { FavoriteEntry, MainToPaneMessage, Preferences, PaneToMainMessage, SortColumn } from "../types.js";
@@ -38,6 +38,34 @@ const THEME_TOKENS: Record<"Light" | "Dark", Record<string, string>> = {
         "--font-size":          "12px",
     },
 };
+
+// ── Shared style constants ────────────────────────────────────────────────────
+
+const STYLES = {
+    text: {
+        fontFamily: "var(--font-family)",
+        fontSize:   "var(--font-size)",
+        color:      "var(--color-text)",
+    },
+    btn: {
+        fontFamily: "var(--font-family)",
+        fontSize:   "var(--font-size)",
+        color:      "var(--color-text)",
+        background: "var(--color-btn-bg)",
+        border:     "1px solid var(--color-border)",
+        padding:    "4px 10px",
+        cursor:     "pointer",
+    },
+    input: {
+        fontFamily: "var(--font-family)",
+        fontSize:   "var(--font-size)",
+        color:      "var(--color-text)",
+        background: "var(--color-btn-bg)",
+        border:     "1px solid var(--color-border)",
+        padding:    "4px 6px",
+        boxSizing:  "border-box" as const,
+    },
+} satisfies Record<string, React.CSSProperties>;
 
 // ── Document type icons ───────────────────────────────────────────────────────
 
@@ -196,7 +224,7 @@ function FavoritesPane({
     // No lists yet — first time setup
     if (state.listNames.length === 0) {
         return (
-            <div style={{ padding: "16px", fontFamily: "var(--font-family)", fontSize: "var(--font-size)", background: "var(--color-bg)", color: "var(--color-text)", height: "100%", boxSizing: "border-box" }}>
+            <div style={{ ...STYLES.text, padding: "16px", background: "var(--color-bg)", height: "100%", boxSizing: "border-box" }}>
                 <p style={{ marginTop: 0, marginBottom: "8px", fontWeight: "bold" }}>Create your favorites list</p>
                 <input
                     type="text"
@@ -205,10 +233,10 @@ function FavoritesPane({
                     onKeyDown={(e) => { if (e.key === "Enter") handleCreate(); }}
                     placeholder="Your name"
                     autoFocus
-                    style={{ width: "100%", boxSizing: "border-box", padding: "4px 6px", fontFamily: "var(--font-family)", fontSize: "var(--font-size)", background: "var(--color-btn-bg)", color: "var(--color-text)", border: "1px solid var(--color-border)" }}
+                    style={{ ...STYLES.input, width: "100%" }}
                 />
                 <button type="button" onClick={handleCreate} disabled={!newName.trim()}
-                    style={{ marginTop: "6px", fontFamily: "var(--font-family)", fontSize: "var(--font-size)", color: "var(--color-text)", background: "var(--color-btn-bg)", border: "1px solid var(--color-border)", padding: "4px 10px", cursor: newName.trim() ? "pointer" : "default", opacity: newName.trim() ? 1 : 0.5 }}>
+                    style={{ ...STYLES.btn, marginTop: "6px", cursor: newName.trim() ? "pointer" : "default", opacity: newName.trim() ? 1 : 0.5 }}>
                     Create
                 </button>
             </div>
@@ -217,14 +245,14 @@ function FavoritesPane({
 
     // Normal view — persistent dropdown header + favorites
     return (
-        <div style={{ fontFamily: "var(--font-family)", fontSize: "var(--font-size)", background: "var(--color-bg)", color: "var(--color-text)", height: "100%", boxSizing: "border-box", display: "flex", flexDirection: "column" }}>
+        <div style={{ ...STYLES.text, background: "var(--color-bg)", height: "100%", boxSizing: "border-box", display: "flex", flexDirection: "column" }}>
             {/* List selector header */}
             <div style={{ display: "flex", alignItems: "center", gap: "4px", padding: "4px 8px", borderBottom: "1px solid var(--color-border)", flexShrink: 0 }}>
                 <select
                     value={state.currentList ?? ""}
                     title="Your favorites list"
                     onChange={(e) => sendToMain({ type: "selectList", name: e.target.value })}
-                    style={{ flex: 1, padding: "3px 4px", fontFamily: "var(--font-family)", fontSize: "var(--font-size)", background: "var(--color-btn-bg)", color: "var(--color-text)", border: "1px solid var(--color-border)" }}
+                    style={{ ...STYLES.input, flex: 1, padding: "3px 4px" }}
                 >
                     {state.listNames.map(n => <option key={n} value={n}>{n}</option>)}
                 </select>
@@ -232,7 +260,7 @@ function FavoritesPane({
                     type="button"
                     title="Create new list"
                     onClick={() => { setShowCreate(v => !v); setNewName(""); }}
-                    style={{ fontFamily: "var(--font-family)", fontSize: "var(--font-size)", color: "var(--color-text)", background: "var(--color-btn-bg)", border: "1px solid var(--color-border)", padding: "3px 8px", cursor: "pointer", fontWeight: "bold" }}
+                    style={{ ...STYLES.btn, padding: "3px 8px", fontWeight: "bold" }}
                 >
                     +
                 </button>
@@ -247,10 +275,10 @@ function FavoritesPane({
                         onKeyDown={(e) => { if (e.key === "Enter") handleCreate(); if (e.key === "Escape") setShowCreate(false); }}
                         placeholder="New list name"
                         autoFocus
-                        style={{ flex: 1, padding: "3px 4px", fontFamily: "var(--font-family)", fontSize: "var(--font-size)", background: "var(--color-btn-bg)", color: "var(--color-text)", border: "1px solid var(--color-border)" }}
+                        style={{ ...STYLES.input, flex: 1, padding: "3px 4px" }}
                     />
                     <button type="button" onClick={handleCreate} disabled={!newName.trim()}
-                        style={{ fontFamily: "var(--font-family)", fontSize: "var(--font-size)", color: "var(--color-text)", background: "var(--color-btn-bg)", border: "1px solid var(--color-border)", padding: "3px 8px", cursor: newName.trim() ? "pointer" : "default", opacity: newName.trim() ? 1 : 0.5 }}>
+                        style={{ ...STYLES.btn, padding: "3px 8px", cursor: newName.trim() ? "pointer" : "default", opacity: newName.trim() ? 1 : 0.5 }}>
                         Create
                     </button>
                 </div>
@@ -353,6 +381,7 @@ function ContextMenu({
             {/* Click-outside overlay */}
             <div style={{ position: "fixed", inset: 0, zIndex: 999 }} onClick={onClose} />
             <div style={{
+                ...STYLES.text,
                 position: "fixed",
                 left: x,
                 top: y,
@@ -360,8 +389,6 @@ function ContextMenu({
                 border: "1px solid var(--color-border)",
                 boxShadow: "0 2px 8px rgba(0,0,0,0.25)",
                 zIndex: 1000,
-                fontFamily: "var(--font-family)",
-                fontSize: "var(--font-size)",
                 minWidth: "172px",
             }}>
                 <ContextMenuItem
@@ -383,10 +410,17 @@ function ContextMenu({
     );
 }
 
+function getSortValue(entry: FavoriteEntry, col: SortColumn): string {
+    switch (col) {
+        case "documentName": return entry.documentName;
+        case "documentType": return entry.documentType;
+    }
+}
+
 function sortFavorites(favorites: FavoriteEntry[], prefs: Preferences): FavoriteEntry[] {
     return [...favorites].sort((a, b) => {
-        const aVal = a[prefs.sortColumn].toLowerCase();
-        const bVal = b[prefs.sortColumn].toLowerCase();
+        const aVal = getSortValue(a, prefs.sortColumn).toLowerCase();
+        const bVal = getSortValue(b, prefs.sortColumn).toLowerCase();
         const cmp = aVal.localeCompare(bVal);
         return prefs.sortDirection === "asc" ? cmp : -cmp;
     });
@@ -413,15 +447,21 @@ function FavoritesTable({
     const containerRef = React.useRef<HTMLDivElement>(null);
     const handleCloseContextMenu = useCallback(() => setContextMenu(null), []);
 
-    const isActiveAlreadyFavorited = favorites.some(f => f.documentId === activeDocumentId);
-    const sorted = sortFavorites(favorites, preferences);
+    const isActiveAlreadyFavorited = useMemo(
+        () => favorites.some(f => f.documentId === activeDocumentId),
+        [favorites, activeDocumentId]
+    );
+    const sorted = useMemo(
+        () => sortFavorites(favorites, preferences),
+        [favorites, preferences]
+    );
 
     // Clear focus if focused entry was removed externally
     useEffect(() => {
         if (focusedId !== null && !favorites.some(f => f.documentId === focusedId)) {
             setFocusedId(null);
         }
-    }, [favorites, focusedId]);
+    }, [favorites]);
 
     function toggleSort(column: SortColumn) {
         const direction =
@@ -454,7 +494,7 @@ function FavoritesTable({
         return (
             <div>
                 <AddButton disabled={!activeDocumentId} sendToMain={sendToMain} />
-                <p style={{ color: "var(--color-text-muted)", marginTop: "16px", fontFamily: "var(--font-family)", fontSize: "var(--font-size)" }}>
+                <p style={{ ...STYLES.text, color: "var(--color-text-muted)", marginTop: "16px" }}>
                     No favorites yet. Open a document and click + Add current document.
                 </p>
             </div>
@@ -469,7 +509,7 @@ function FavoritesTable({
             onKeyDown={handleKeyDown}
         >
             <AddButton disabled={!activeDocumentId || isActiveAlreadyFavorited} sendToMain={sendToMain} />
-            <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "8px", tableLayout: "fixed", fontFamily: "var(--font-family)", fontSize: "var(--font-size)" }}>
+            <table style={{ ...STYLES.text, width: "100%", borderCollapse: "collapse", marginTop: "8px", tableLayout: "fixed" }}>
                 <colgroup>
                     <col style={{ width: "28px" }} />
                     <col />
@@ -540,12 +580,8 @@ function AddButton({
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
             style={{
-                fontFamily: "var(--font-family)",
-                fontSize: "var(--font-size)",
-                color: "var(--color-text)",
+                ...STYLES.btn,
                 background: hovered && !disabled ? "var(--color-btn-hover)" : "var(--color-btn-bg)",
-                border: "1px solid var(--color-border)",
-                padding: "4px 10px",
                 cursor: disabled ? "default" : "pointer",
                 opacity: disabled ? 0.5 : 1,
                 width: "100%",
@@ -615,6 +651,7 @@ function FavoriteRow({
 function Notification({ message, onDismiss }: { message: string; onDismiss: () => void }) {
     return (
         <div style={{
+            ...STYLES.text,
             background: "var(--color-btn-bg)",
             border: "1px solid var(--color-border)",
             padding: "6px 10px",
@@ -622,14 +659,11 @@ function Notification({ message, onDismiss }: { message: string; onDismiss: () =
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            fontFamily: "var(--font-family)",
-            fontSize: "var(--font-size)",
-            color: "var(--color-text)",
         }}>
             <span>{message}</span>
             <button
                 onClick={onDismiss}
-                style={{ border: "none", background: "none", cursor: "pointer", marginLeft: "8px", color: "var(--color-text)", fontSize: "var(--font-size)" }}
+                style={{ ...STYLES.text, border: "none", background: "none", cursor: "pointer", marginLeft: "8px" }}
                 title="Dismiss"
             >
                 ×
@@ -658,14 +692,12 @@ function DocumentNotFoundModal({
             zIndex: 1000,
         }}>
             <div style={{
+                ...STYLES.text,
                 background: "var(--color-menu-bg)",
                 border: "1px solid var(--color-border)",
                 padding: "20px",
                 maxWidth: "380px",
                 boxShadow: "0 4px 16px rgba(0,0,0,0.3)",
-                fontFamily: "var(--font-family)",
-                fontSize: "var(--font-size)",
-                color: "var(--color-text)",
             }}>
                 <p style={{ margin: "0 0 16px" }}>
                     The document <strong>'{info.documentName}'</strong> ({info.moduleName}) could
@@ -674,13 +706,13 @@ function DocumentNotFoundModal({
                 <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
                     <button
                         onClick={onKeep}
-                        style={{ fontFamily: "var(--font-family)", fontSize: "var(--font-size)", color: "var(--color-text)", background: "var(--color-btn-bg)", border: "1px solid var(--color-border)", padding: "4px 10px", cursor: "pointer" }}
+                        style={{ ...STYLES.btn }}
                     >
                         Keep
                     </button>
                     <button
                         onClick={onRemove}
-                        style={{ fontFamily: "var(--font-family)", fontSize: "var(--font-size)", color: "#fff", background: "#c0392b", border: "none", padding: "4px 10px", cursor: "pointer" }}
+                        style={{ ...STYLES.btn, color: "#fff", background: "#c0392b", border: "none" }}
                     >
                         Remove from Favorites
                     </button>

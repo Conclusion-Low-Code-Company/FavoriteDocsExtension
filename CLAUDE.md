@@ -38,7 +38,7 @@ Declared in `src/manifest.json` and compiled by `build-extension.mjs`:
 | Source file | Compiled output | Role |
 |---|---|---|
 | `src/main/index.ts` | `main.js` | Permanent background context. Loaded once when Studio Pro opens the extension. Registers menus, panes, and event listeners. |
-| `src/ui/*.tsx` | `<name>.js` (one per file) | UI contexts. Each runs in its own isolated webview. Currently only `tab.js` exists. |
+| `src/ui/*.tsx` | `<name>.js` (one per file) | UI contexts. Each runs in its own isolated webview. Currently only `pane.js` exists. |
 
 To add a new UI entry point (e.g. a pane), add a file to `src/ui/`, push a new entry to the `entryPoints` array in `build-extension.mjs`, and add the entry to the `"ui"` map in `src/manifest.json`.
 
@@ -119,6 +119,16 @@ The Extensions API returns document types as fully-qualified module-scoped strin
 - `"Microflows$Microflow"` (not `"Microflow"`)
 - `"Microflows$Nanoflow"` (not `"Nanoflow"`)
 - `"Pages$Snippet"` (not `"Snippet"`)
+
+### `editDocument` does not throw for missing documents
+`studioPro.ui.editors.editDocument(documentId)` resolves silently when the document no longer exists in the model — it does not throw. Catch-based "not found" detection never fires.
+
+To detect deleted documents, check model existence first using `getUnitsInfo()` on the appropriate API before calling `editDocument`:
+- `"Pages$Page"` → `studioPro.app.model.pages.getUnitsInfo()`
+- `"Pages$Snippet"` → `studioPro.app.model.snippets.getUnitsInfo()`
+- `"Microflows$Microflow"` / `"Microflows$Nanoflow"` → `studioPro.app.model.microflows.getUnitsInfo()`
+
+Each returns `ReadonlyArray<{ $ID: string; ... }>` — check `.some(u => u.$ID === documentId)`. Wrap in try/catch and default to `true` (assume exists) if the model API is unavailable, to avoid false "not found" modals.
 
 ### Build output and .gitignore
 - `dist/` must be in `.gitignore` — it contains compiled JS, source maps, and esbuild chunk files that are build artifacts, not source.

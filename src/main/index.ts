@@ -39,9 +39,8 @@ export const component: IComponent = {
             }
         }
 
-        async function broadcastAll(): Promise<void> {
+        function selectFirstListIfNeeded(): void {
             const names = Object.keys(state.allFavorites.lists);
-            // Auto-select the first list when none is selected and lists exist.
             if (!state.identityKey && names.length > 0) {
                 const firstKey = names[0];
                 state.identityKey = firstKey;
@@ -49,19 +48,49 @@ export const component: IComponent = {
                 state.favorites = list.favorites;
                 state.preferences = list.preferences;
             }
-            await broadcast({ type: "studioThemeChanged", theme: state.theme });
-            await broadcast({ type: "activeDocumentChanged", documentId: state.activeDocumentId });
-            await broadcast({ type: "listOptions", names, selected: state.identityKey });
-            await broadcast({ type: "preferencesChanged", ...state.preferences });
-            await broadcast({ type: "favoritesChanged", favorites: state.favorites });
         }
 
-        async function persistAndBroadcast(): Promise<void> {
+        function syncCurrentList(): void {
             if (!state.identityKey) return;
             state.allFavorites.lists[state.identityKey] = {
                 preferences: state.preferences,
                 favorites: state.favorites,
             };
+        }
+
+        async function broadcastAll(): Promise<void> {
+            const names = Object.keys(state.allFavorites.lists);
+            await Promise.all([
+                broadcast({ type: "studioThemeChanged", theme: state.theme }),
+                broadcast({ type: "activeDocumentChanged", documentId: state.activeDocumentId }),
+                broadcast({ type: "listOptions", names, selected: state.identityKey }),
+                broadcast({ type: "preferencesChanged", ...state.preferences }),
+                broadcast({ type: "favoritesChanged", favorites: state.favorites }),
+            ]);
+        }
+
+        async function documentExistsInModel(documentId: string, documentType: string): Promise<boolean> {
+            const { model } = studioPro.app;
+            try {
+                switch (documentType) {
+                    case "Pages$Page":
+                        return (await model.pages.getUnitsInfo()).some(u => u.$ID === documentId);
+                    case "Pages$Snippet":
+                        return (await model.snippets.getUnitsInfo()).some(u => u.$ID === documentId);
+                    case "Microflows$Microflow":
+                    case "Microflows$Nanoflow":
+                        return (await model.microflows.getUnitsInfo()).some(u => u.$ID === documentId);
+                    default:
+                        return true; // Unknown type — assume exists, let editDocument handle it
+                }
+            } catch {
+                return true; // Model API unavailable — don't show a false "not found" modal
+            }
+        }
+
+        async function persistAndBroadcast(): Promise<void> {
+            if (!state.identityKey) return;
+            syncCurrentList();
             try {
                 await saveAll(files, state.allFavorites);
             } catch {
@@ -113,6 +142,7 @@ export const component: IComponent = {
                 switch (message.type) {
                     case "paneReady": {
                         state.allFavorites = await loadAll(files);
+                        selectFirstListIfNeeded();
                         await broadcastAll();
                         break;
                     }
@@ -154,10 +184,19 @@ export const component: IComponent = {
                     }
 
                     case "openDocument": {
+                        const fav = state.favorites.find(f => f.documentId === message.documentId);
+                        if (fav && !await documentExistsInModel(message.documentId, fav.documentType)) {
+                            await broadcast({
+                                type: "documentNotFound",
+                                documentId: fav.documentId,
+                                documentName: fav.documentName,
+                                moduleName: fav.moduleName,
+                            });
+                            break;
+                        }
                         try {
                             await studioPro.ui.editors.editDocument(message.documentId);
                         } catch {
-                            const fav = state.favorites.find(f => f.documentId === message.documentId);
                             if (fav) {
                                 await broadcast({
                                     type: "documentNotFound",
@@ -176,10 +215,7 @@ export const component: IComponent = {
                             sortColumn: message.sortColumn,
                             sortDirection: message.sortDirection,
                         };
-                        state.allFavorites.lists[state.identityKey] = {
-                            preferences: state.preferences,
-                            favorites: state.favorites,
-                        };
+                        syncCurrentList();
                         try {
                             await saveAll(files, state.allFavorites);
                         } catch {
@@ -193,6 +229,7 @@ export const component: IComponent = {
         );
 
         // Broadcast in case the pane was already open when the extension loaded
+        selectFirstListIfNeeded();
         await broadcastAll();
     },
 };
