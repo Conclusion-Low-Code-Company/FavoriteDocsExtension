@@ -16,7 +16,7 @@ export async function loadAll(files: IAppFilesApi): Promise<AllFavoritesFile> {
     try {
         const raw = await files.getFile(ALL_FILE);
         const parsed = JSON.parse(raw) as AllFavoritesFile;
-        if (parsed.version !== 1) return emptyAll();
+        if (parsed.version !== 1 || !parsed.lists || typeof parsed.lists !== "object") return emptyAll();
         return parsed;
     } catch {
         return emptyAll();

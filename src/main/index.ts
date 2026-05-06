@@ -108,32 +108,9 @@ export const component: IComponent = {
             // Preferences API unavailable — theme stays "Dark"
         }
 
-        const paneHandle = await studioPro.ui.panes.register(
-            { title: "Favorites", initialPosition: "right" },
-            { componentName: "extension/FavoriteDocs", uiEntrypoint: "pane" }
-        );
-
-        await studioPro.ui.extensionsMenu.add({
-            menuId: "FavoriteDocs.MainMenu",
-            caption: "FavoriteDocs",
-            subMenus: [
-                {
-                    menuId: "FavoriteDocs.ShowFavorites",
-                    caption: "Show Favorites",
-                    action: async () => {
-                        await studioPro.ui.panes.open(paneHandle);
-                    },
-                },
-            ],
-        });
-
-        studioPro.ui.editors.addEventListener("activeDocumentChanged", ({ info }) => {
-            state.activeDocumentId = info?.documentId ?? null;
-            state.activeDocumentInfo = info ?? null;
-            broadcast({ type: "activeDocumentChanged", documentId: state.activeDocumentId });
-        });
-
         // ── Message handler: pane → main ──────────────────────────────────────
+        // Registered before panes.register() so that if the pane was already open
+        // from a previous session its paneReady message is not missed.
 
         await studioPro.ui.messagePassing.addMessageHandler<PaneToMainMessage>(
             async (msgInfo) => {
@@ -228,8 +205,32 @@ export const component: IComponent = {
             }
         );
 
+        const paneHandle = await studioPro.ui.panes.register(
+            { title: "Favorites", initialPosition: "right" },
+            { componentName: "extension/FavoriteDocs", uiEntrypoint: "pane" }
+        );
+
+        await studioPro.ui.extensionsMenu.add({
+            menuId: "FavoriteDocs.MainMenu",
+            caption: "FavoriteDocs",
+            subMenus: [
+                {
+                    menuId: "FavoriteDocs.ShowFavorites",
+                    caption: "Show Favorites",
+                    action: async () => {
+                        await studioPro.ui.panes.open(paneHandle);
+                    },
+                },
+            ],
+        });
+
+        studioPro.ui.editors.addEventListener("activeDocumentChanged", ({ info }) => {
+            state.activeDocumentId = info?.documentId ?? null;
+            state.activeDocumentInfo = info ?? null;
+            broadcast({ type: "activeDocumentChanged", documentId: state.activeDocumentId });
+        });
+
         // Broadcast in case the pane was already open when the extension loaded
-        selectFirstListIfNeeded();
         await broadcastAll();
     },
 };
