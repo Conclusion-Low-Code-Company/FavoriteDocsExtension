@@ -43,6 +43,16 @@ const SNIPPET_ICON = (
     </TypeIcon>
 );
 
+const DOMAIN_MODEL_ICON = (
+    <TypeIcon>
+        <rect x="4.5" y="0.5" width="5" height="3.5"/>
+        <rect x="0.5" y="10" width="5" height="3.5"/>
+        <rect x="8.5" y="10" width="5" height="3.5"/>
+        <line x1="7" y1="4" x2="3" y2="10"/>
+        <line x1="7" y1="4" x2="11" y2="10"/>
+    </TypeIcon>
+);
+
 const GENERIC_ICON = (
     <TypeIcon>
         <polyline points="8,1 13,1 13,6"/>
@@ -56,6 +66,7 @@ const DOCUMENT_TYPE_ICONS: Partial<Record<string, React.ReactElement>> = {
     "Microflows$Microflow": MICROFLOW_ICON,
     "Microflows$Nanoflow": NANOFLOW_ICON,
     "Pages$Snippet": SNIPPET_ICON,
+    "DomainModels$DomainModel": DOMAIN_MODEL_ICON,
 };
 
 export function getDocumentTypeIcon(type: string): React.ReactElement {

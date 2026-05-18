@@ -145,7 +145,7 @@ export const component: IComponent = {
                         const info = state.activeDocumentInfo;
                         const entry: FavoriteEntry = {
                             documentId: info.documentId ?? "",
-                            documentName: info.documentName ?? "",
+                            documentName: info.documentName || info.moduleName || "",
                             moduleName: info.moduleName ?? "",
                             documentType: info.documentType ?? "",
                         };
