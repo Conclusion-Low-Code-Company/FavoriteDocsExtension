@@ -126,7 +126,8 @@ The Extensions API returns document types as fully-qualified module-scoped strin
 To detect deleted documents, check model existence first using `getUnitsInfo()` on the appropriate API before calling `editDocument`:
 - `"Pages$Page"` → `studioPro.app.model.pages.getUnitsInfo()`
 - `"Pages$Snippet"` → `studioPro.app.model.snippets.getUnitsInfo()`
-- `"Microflows$Microflow"` / `"Microflows$Nanoflow"` → `studioPro.app.model.microflows.getUnitsInfo()`
+- `"Microflows$Microflow"` → `studioPro.app.model.microflows.getUnitsInfo()`
+- `"Microflows$Nanoflow"` → **no API available** — the model API is typed to `Microflows.Microflow` only and does not include nanoflows; default to `true` (assume exists)
 
 Each returns `ReadonlyArray<{ $ID: string; ... }>` — check `.some(u => u.$ID === documentId)`. Wrap in try/catch and default to `true` (assume exists) if the model API is unavailable, to avoid false "not found" modals.
 

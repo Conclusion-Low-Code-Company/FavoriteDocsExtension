@@ -54,7 +54,11 @@
       "PowerShell(gh pr list)",
       "Bash(Get-ChildItem -Path \"c:\\\\git\\\\FavoriteDocs\" -Recurse -Force)",
       "Bash(Get-ChildItem -Path 'c:\\\\git\\\\FavoriteDocs' -Recurse -Directory)",
-      "PowerShell(Get-ChildItem -Path \"c:\\\\git\\\\FavoriteDocs\\\\dist\\\\FavoriteDocs\" -Recurse | Select-Object FullName, @{Name='Type';Expression={if\\($_.PSIsContainer\\){'Directory'}else{'File'}}} | Sort-Object FullName)"
+      "PowerShell(Get-ChildItem -Path \"c:\\\\git\\\\FavoriteDocs\\\\dist\\\\FavoriteDocs\" -Recurse | Select-Object FullName, @{Name='Type';Expression={if\\($_.PSIsContainer\\){'Directory'}else{'File'}}} | Sort-Object FullName)",
+      "Bash(Get-ChildItem -Path \"c:\\\\git\\\\FavoriteDocs\" -Recurse -File)",
+      "Bash(Format-List)",
+      "Bash(Get-ChildItem -Path \"c:\\\\git\\\\FavoriteDocs\" -Recurse -Include \"*.ts\", \"*.tsx\", \"*.js\", \"*.mjs\", \"*.json\")",
+      "Bash(grep -E '\\\\.\\(ts|tsx|js|mjs|json|mdn\\)$')"
     ],
     "additionalDirectories": [
       "c:\\Users\\bartheijs\\.claude\\projects\\c--Mendix-EXT-Development-main-Extensions-FavoriteDocs\\memory"

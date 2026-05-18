@@ -78,8 +78,9 @@ export const component: IComponent = {
                     case "Pages$Snippet":
                         return (await model.snippets.getUnitsInfo()).some(u => u.$ID === documentId);
                     case "Microflows$Microflow":
-                    case "Microflows$Nanoflow":
                         return (await model.microflows.getUnitsInfo()).some(u => u.$ID === documentId);
+                    case "Microflows$Nanoflow":
+                        return true; // No nanoflows API in model — skip check, assume exists
                     default:
                         return true; // Unknown type — assume exists, let editDocument handle it
                 }
